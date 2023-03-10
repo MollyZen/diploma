@@ -1,0 +1,36 @@
+{
+  /// AUTHENTICATION AND AUTHORIZATION
+  "requireAuthorization" : false,
+  "requireAuthentication" : false,
+  "authenticationType" : "oauth2", //openid, oauth2, customWeb, ldap, ad
+  "openid" : {
+
+  },
+  "oauth2" : {
+
+  },
+  "customWeb" : {
+
+  },
+
+  /// DATA ACCESS
+  "db" : "h2", //h2, redis, mongodb, postgres, mysql
+  "dbSettings" : {
+    "dbType": "postgres",
+    "user": "postgres",
+    "password": "postgres",
+    "host": "localhost",
+    "port": "5432",
+    "database": "collab"
+  },
+
+  /// DATA STORAGE
+  "persistentStorage" : false,
+  "defaultStorage" : "local", //db, local, cloud
+  "local" : {
+  },
+
+  /// SESSION SETTINGS
+  "afkTimer" : "120000", //120 * 1000 ms
+  "heartBeatInterval" : "5000" //5 * 1000 ms
+}
