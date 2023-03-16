@@ -1,20 +1,18 @@
 {
+  /// BASIC SETTINGS
+  "port" : "8082",
+  "enableActuator" : true,
+
   /// AUTHENTICATION AND AUTHORIZATION
   "requireAuthorization" : false,
   "requireAuthentication" : false,
-  "authenticationType" : "oauth2", //openid, oauth2, customWeb, ldap, ad
-  "openid" : {
-
-  },
-  "oauth2" : {
-
-  },
-  "customWeb" : {
-
-  },
+  "authenticationType" : "oauth2", //openid, oauth2, jwt, customWeb, ldap, ad
+  "openid" : {},
+  "oauth2" : {},
+  "customWeb" : {},
 
   /// DATA ACCESS
-  "db" : "h2", //h2, redis, mongodb, postgres, mysql
+  "db" : "h2", //h2 (default), redis, mongodb, postgres, mysql
   "dbSettings" : {
     "dbType": "postgres",
     "user": "postgres",
@@ -26,8 +24,10 @@
 
   /// DATA STORAGE
   "persistentStorage" : false,
+  "allowUserPersistentStorage" : false,
   "defaultStorage" : "local", //db, local, cloud
   "local" : {
+    "path" : "C:\\localStorage\\"
   },
 
   /// SESSION SETTINGS

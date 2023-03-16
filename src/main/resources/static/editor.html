@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editor</title>
+    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <script src="js/toolbar.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="js/jquery-3.6.4.js"><\/script>')</script>
+</head>
+
+<body onload="toolbarSetup();" role="application" style="background-color: aqua;">
+    <div id="toolbar" role="toolbar" class="toolbar" style="display: flex; background-color: coral;">
+        <img src="img/placeholder_icon.svg" style="object-fit: contain;" width="32" height="32" />
+        <ul class="toolbar_left" role="toolbar">
+            <button class="bi-type-bold editor-button"></button>
+            <button class="bi-type-italic editor-button"></button>
+            <button class="bi-type-underline editor-button"></button>
+            <button class="bi-type-strikethrough editor-button"></button>
+
+            <span class="separator"></span>
+
+            <div class="buttons-with-input">
+                <button class="bi-dash-square-fill editor-button" id="font-size-minus"></button>
+                <input id="font-size-input" type="text" autocomplete="false" style="text-align:center" size="1" />
+                <button class="bi-plus-square-fill editor-button" id="font-size-plus"></button>
+            </div>
+
+            <span class="separator"></span>
+
+            <div class="select_wrap">
+                <ul class="default_option">
+                    <li>
+                        <div class="option">
+                            Pizzas
+                        </div>
+                    </li>
+                </ul>
+                <ul class="select_ul">
+                    <li>
+                        <div class="option">
+                            Pizzas
+                        </div>
+                    </li>
+                    <li>
+                        <div class="option">
+                            Burget
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </ul>
+    </div>
+
+    <div style="background-color: white; height: 29.7cm; width: 21.0cm;margin:20px auto" contenteditable="true">
+        
+    </div>
+</body>
+
+</html>

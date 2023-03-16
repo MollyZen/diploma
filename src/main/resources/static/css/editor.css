@@ -1,0 +1,136 @@
+#editbar {
+    height: auto
+}
+
+body {
+    background-color: white;
+    margin: 0;
+}
+
+.toolbar ul {
+    align-items: center
+}
+
+.toolbar div {
+    align-items: center;
+}
+
+.toolbar ul.toolbar_left {
+    padding-left: 5px
+}
+
+.toolbar ul.toolbar_right {
+    flex-shrink: 0
+}
+
+.editor-button {
+    background-color: transparent;
+    cursor: pointer;
+    /*border: 1px solid #ffffff;*/
+    border: none;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.buttons-with-input {
+    display:inline-block;
+}
+
+.separator {
+    content: '';
+    display: inline-block;
+    background: #888;
+    margin: 0px 4px;
+    height: 18px;
+    width: 1px;
+    vertical-align: top;
+}
+
+/*Font selector*/
+.select_wrap {
+    width: 10ch;
+    height: 0;
+    
+    /*margin: 15px auto;*/
+    position: relative;
+    user-select: none;
+    display:inline-block;
+}
+
+.select_wrap * {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.select_wrap .default_option {
+    background: #fff;
+    border-radius: 5px;
+    position: relative;
+    cursor: pointer;
+}
+
+.select_wrap .default_option li {
+    /*padding: 10px 20px;*/
+}
+
+.select_wrap .default_option:before {
+    content: "";
+    position: absolute;
+    /*top: 18px;*/
+    top: 3px;
+    right: 10px;
+    width: 4px;
+    height: 4px;
+    border: 2px solid;
+    border-color: transparent transparent #000000 #000000;
+    transform: rotate(-45deg);
+}
+
+.select_wrap .select_ul {
+    position: absolute;
+    /*top: 55px;*/
+    /*left: 0;*/
+    width: 100%;
+    background: #fff;
+    border-radius: 5px;
+    display: none;
+}
+
+.select_wrap .select_ul li {
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.select_wrap .select_ul li:first-child:hover {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.select_wrap .select_ul li:last-child:hover {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.select_wrap .select_ul li:hover {
+    background: #fff4dd;
+}
+
+.select_wrap .option {
+    display: flex;
+    align-items: center;
+}
+
+.select_wrap.active .select_ul {
+    display: block;
+}
+
+.select_wrap.active .default_option:before {
+    /*top: 25px;*/
+    top: 7px;
+    transform: rotate(-225deg);
+}
+
+[contenteditable] {
+    outline: 0px solid transparent;
+  }
