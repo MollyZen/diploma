@@ -1,4 +1,14 @@
 function toolbarSetup() {
+    const userAction = async () => {
+        const response = await fetch('http://localhost:8082/rest/generate-id');
+        const res = await response.text(); //extract JSON from the http response
+        $('#firstName').text(res);
+        var firstName = $('#firstName').text();
+        var lastName = $('#lastName').text();
+        var intials = $('#firstName').text().charAt(0) + $('#lastName').text().charAt(0);
+        var profileImage = $('#currentImage').text(intials);
+    };
+    userAction.apply();
 
     $(".default_option").click(function () {
         $(this).parent().toggleClass("active");
@@ -49,9 +59,30 @@ function toolbarSetup() {
         $("#font-size-input").val(clamp(Number(val), 1, 400));
     });
 
-    //font-selector
+
+
+    var myIFrame = document.getElementById("pane");
+    var body = myIFrame.contentWindow.document.body;
+    var docc = myIFrame.contentWindow.document;
+    var el = docc.createElement("div");
+    el.setAttribute('contenteditable', true);
+    el.setAttribute('style', 'background-color: white; height: 29.7cm; width: 21.0cm;margin:0; padding:0; overflow:hidden');
+    el.textContent = 'AMOGUS DRIPPPP';
+    body.appendChild(el);
+    myIFrame.contentWindow.document.body = body;
 }
 
 function clamp(num, min, max) {
     return Math.min(Math.max(num, min), max)
+}
+
+function createOverflowButton(id, elToMove){
+    const el = elToMove.parentElement.createElement("div");
+    el.setAttribute('id', id);
+    el.setAttribute('class', 'bi-three-dots-vertical');
+    elToMove.remove();
+}
+
+function addUser(name, avatar){
+
 }

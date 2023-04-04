@@ -12,6 +12,10 @@
             <directory>${project.build.directory}/static/</directory>
             <outputDirectory>static/</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}/locales/</directory>
+            <outputDirectory>locales/</outputDirectory>
+        </fileSet>
     </fileSets>
     <files>
         <file>

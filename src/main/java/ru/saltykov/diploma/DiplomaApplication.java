@@ -5,8 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 
 @EnableWebMvc
+@EnableWebSocketMessageBroker
 @SpringBootApplication(exclude = {RedisAutoConfiguration.class, MongoAutoConfiguration.class})
 public class DiplomaApplication {
 
