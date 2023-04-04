@@ -49,7 +49,6 @@ function toolbarSetup() {
             event.preventDefault();
     });
     //handling manual entry for font size
-    /*input.addEventListener("keydown", );*/
     $("#font-size-input").blur(function () {
         var val = $("#font-size-input").val();
         if (val == "")
@@ -61,15 +60,51 @@ function toolbarSetup() {
 
 
 
-    var myIFrame = document.getElementById("pane");
+    var pageWidth = '21.0cm';
+    var pageHeight = '29.7cm';
+    const myIFrame = document.getElementById("pane");
+    const banner = document.getElementById("banner");
+    const paneHolder = $("#pane-holder");
+    addEventListener("resize", (event) =>
+    {
+        var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        var bannerHeight = banner.offsetHeight;
+        paneHolder.height(vh - bannerHeight);
+    });
+    var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    var bannerHeight = banner.offsetHeight;
+    paneHolder.height(vh - bannerHeight);
+
+    //myIFrame.setAttribute('style', myIFrame.getAttribute('style') + '; width: ' + pageWidth);
+    //myIFrame.setAttribute('style', myIFrame.getAttribute('style') + '; height: ' + pageHeight);
     var body = myIFrame.contentWindow.document.body;
     var docc = myIFrame.contentWindow.document;
     var el = docc.createElement("div");
     el.setAttribute('contenteditable', true);
-    el.setAttribute('style', 'background-color: white; height: 29.7cm; width: 21.0cm;margin:0; padding:0; overflow:hidden');
+    el.setAttribute('style', 'background-color: white; margin:0; padding:0; overflow:hidden; outline: 0px solid transparent;');
+    el.setAttribute('style', el.getAttribute('style')+'; width: ' + pageWidth);
+    el.setAttribute('style', el.getAttribute('style')+'; height: ' + pageHeight);
     el.textContent = 'AMOGUS DRIPPPP';
     body.appendChild(el);
+    var el2 = docc.createElement("div");
+    el2.setAttribute('style', 'height: 40px');
+    body.appendChild(el2);
+    var el3 = docc.createElement("div");
+    el3.setAttribute('contenteditable', true);
+    el3.setAttribute('style', 'background-color: white; margin:0; padding:0; overflow:hidden; outline: 0px solid transparent;');
+    el3.setAttribute('style', el.getAttribute('style')+'; width: ' + pageWidth);
+    el3.setAttribute('style', el.getAttribute('style')+'; height: ' + pageHeight);
+    el3.textContent = 'AMOGUS DRIPPPP2';
+    body.appendChild(el3);
+    body.setAttribute('style', 'overflow:hidden;');
     myIFrame.contentWindow.document.body = body;
+
+    resizeIFrameToFitContent(myIFrame);
+}
+
+function resizeIFrameToFitContent( iFrame ) {
+    iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
+    iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
 }
 
 function clamp(num, min, max) {
