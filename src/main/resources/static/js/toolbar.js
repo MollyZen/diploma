@@ -16,8 +16,9 @@ function toolbarSetup() {
 
     $(".select_ul li").click(function () {
         var currentele = $(this).html();
-        $(".default_option li").html(currentele);
-        $(this).parents(".select_wrap").removeClass("active");
+        const wrap = $(this).parents(".select_wrap");
+        wrap.children("ul .default_option").html(currentele);
+        wrap.removeClass("active");
     })
 
     var regex = /^[0-9]+$/;
@@ -59,7 +60,7 @@ function toolbarSetup() {
     });
 
 
-
+    //editor page itself
     var pageWidth = '21.0cm';
     var pageHeight = '29.7cm';
     const myIFrame = document.getElementById("pane");
