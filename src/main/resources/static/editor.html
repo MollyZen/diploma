@@ -98,19 +98,49 @@
                 <ul id="zoom" class="default_option">
                     <li>
                         <div class="option">
-                            50%
+                            100%
                         </div>
                     </li>
                 </ul>
                 <ul class="select_ul">
                     <li>
                         <div class="option">
+                            25%
+                        </div>
+                    </li>
+                    <li>
+                        <div class="option">
                             50%
                         </div>
                     </li>
                     <li>
                         <div class="option">
+                            75%
+                        </div>
+                    </li>
+                    <li>
+                        <div class="option">
                             100%
+                        </div>
+                    </li>
+                    <li>
+                        <div class="option">
+                            125%
+                        </div>
+                    </li>
+                    <li>
+                        <div class="option">
+                           150%
+                        </div>
+                    </li>
+                    <li>
+                        <div class="option">
+                            175%
+                        </div>
+                    </li>
+                    <li>
+                        <div class="option">
+                            200%
                         </div>
                     </li>
                 </ul>
@@ -125,11 +155,12 @@
 </div>
 
 
-<div id="pane-holder" style="width: 100%; overflow: auto; display: flex;">
+<!-- TODO: add minimum margins when page doesnt fit properly -->
+<div id="pane-holder" style="width: 100%; overflow: auto;">
     <!--<div style="background-color: white; height: 29.7cm; width: 21.0cm;margin:20px auto; overflow: auto; box-sizing: border-box;" contenteditable="true">
     </div>-->
-    <div id="tmp" style="overflow: hidden; height: fit-content;">
-    <iframe id="pane" style="margin:20px auto; overflow: hidden; border: none; transform-origin: top" src='about:blank'></iframe>
+    <div id="tmp" style="margin:20px auto; margin-left: max(20px, auto); overflow: hidden; height: fit-content; width: fit-content;">
+    <iframe id="pane" style="overflow: hidden; border: none; transform-origin: top left" src='about:blank'></iframe>
     </div>
     <div id="end-page-padding" style="min-height: 80px"></div>
 </div>

@@ -22,8 +22,8 @@ function toolbarSetup() {
     })
 
     const regex = /^[0-9]+$/;
-    var pageWidth = '21.0cm';
-    var pageHeight = '29.7cm';
+    var pageWidth = '210mm';
+    var pageHeight = '297mm';
 
     $("#zoom").on('DOMSubtreeModified', function(){
         const val = Number($(this).children("div .option").text().replace('%', '').trim())/100.;
@@ -40,11 +40,17 @@ function toolbarSetup() {
         const deltaHeight = newPaneHeight - oldPaneHeight;
         const deltaWidth = newPaneWidth - oldPaneWidth;
 
-        $("#tmp").height($("#tmp").height() + deltaHeight);
+        const tmp = $("#tmp");
+        const oldTmpHeight = tmp.height();
+        const oldTmpWidth = tmp.width();
+        tmp.height(oldTmpHeight + deltaHeight);
+        tmp.width(oldTmpWidth + deltaWidth);
 
         var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
         var bannerHeight = banner.offsetHeight;
         paneHolder.height(vh - bannerHeight);
+        paneHolder.width(vw);
     });
 
     var last_value = 11;
@@ -91,12 +97,16 @@ function toolbarSetup() {
     addEventListener("resize", (event) =>
     {
         var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
         var bannerHeight = banner.offsetHeight;
         paneHolder.height(vh - bannerHeight);
+        paneHolder.width(vw);
     });
     var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+    var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
     var bannerHeight = banner.offsetHeight;
     paneHolder.height(vh - bannerHeight);
+    paneHolder.width(vw);
 
     //myIFrame.setAttribute('style', myIFrame.getAttribute('style') + '; width: ' + pageWidth);
     //myIFrame.setAttribute('style', myIFrame.getAttribute('style') + '; height: ' + pageHeight);
@@ -109,7 +119,7 @@ function toolbarSetup() {
     el.setAttribute('style', el.getAttribute('style')+'; height: ' + pageHeight);
     el.textContent = 'AMOGUS DRIPPPP';
     body.appendChild(el);
-    var el2 = docc.createElement("div");
+    /*var el2 = docc.createElement("div");
     el2.setAttribute('style', 'height: 40px');
     body.appendChild(el2);
     var el3 = docc.createElement("div");
@@ -118,8 +128,8 @@ function toolbarSetup() {
     el3.setAttribute('style', el.getAttribute('style')+'; width: ' + pageWidth);
     el3.setAttribute('style', el.getAttribute('style')+'; height: ' + pageHeight);
     el3.textContent = 'AMOGUS DRIPPPP2';
-    body.appendChild(el3);
-    body.setAttribute('style', 'overflow:hidden;');
+    body.appendChild(el3);*/
+    body.setAttribute('style', 'overflow:hidden; margin: 0 0; padding 0 0;');
     myIFrame.contentWindow.document.body = body;
 
     resizeIFrameToFitContent(myIFrame);
