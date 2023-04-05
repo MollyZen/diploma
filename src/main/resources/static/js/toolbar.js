@@ -21,7 +21,31 @@ function toolbarSetup() {
         wrap.removeClass("active");
     })
 
-    var regex = /^[0-9]+$/;
+    const regex = /^[0-9]+$/;
+    var pageWidth = '21.0cm';
+    var pageHeight = '29.7cm';
+
+    $("#zoom").on('DOMSubtreeModified', function(){
+        const val = Number($(this).children("div .option").text().replace('%', '').trim())/100.;
+        const pane = $("#pane");
+
+        const oldPaneHeight = pane.height();
+        const oldPaneWidth = pane.width();
+
+        pane.css('scale', val.toString());
+
+        const newPaneHeight = pane.height();
+        const newPaneWidth = pane.width();
+
+        const deltaHeight = newPaneHeight - oldPaneHeight;
+        const deltaWidth = newPaneWidth - oldPaneWidth;
+
+        $("#tmp").height($("#tmp").height() + deltaHeight);
+
+        var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+        var bannerHeight = banner.offsetHeight;
+        paneHolder.height(vh - bannerHeight);
+    });
 
     var last_value = 11;
     $("#font-size-input").val(last_value);
@@ -61,8 +85,6 @@ function toolbarSetup() {
 
 
     //editor page itself
-    var pageWidth = '21.0cm';
-    var pageHeight = '29.7cm';
     const myIFrame = document.getElementById("pane");
     const banner = document.getElementById("banner");
     const paneHolder = $("#pane-holder");

@@ -11,6 +11,7 @@ body {
     display: flex;
     flex-direction: row;
     background-color: coral;
+    z-index: 2;
 }
 
 .top_banner {
@@ -140,6 +141,8 @@ body {
 .select_wrap .select_ul li {
     padding: 10px 20px;
     cursor: pointer;
+    position: relative;
+    z-index: 3;
 }
 
 .select_wrap .select_ul li:first-child:hover {
