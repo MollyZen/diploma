@@ -119,6 +119,7 @@ function toolbarSetup() {
     paneHolder.height(vh - bannerHeight);
     paneHolder.width(vw);
 
+    setPane(document.getElementById("pane"));
     initPages();
 }
 
