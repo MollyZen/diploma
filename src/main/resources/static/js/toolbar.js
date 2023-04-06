@@ -22,11 +22,9 @@ function toolbarSetup() {
     })
 
     const regex = /^[0-9]+$/;
-    var pageWidth = '210mm';
-    var pageHeight = '297mm';
 
-    $("#zoom").on('DOMSubtreeModified', function(){
-        const val = Number($(this).children("div .option").text().replace('%', '').trim())/100.;
+    $("#zoom").on('DOMSubtreeModified', function () {
+        const val = Number($(this).children("div .option").text().replace('%', '').trim()) / 100.;
         const pane = $("#pane");
 
         const oldPaneHeight = pane.height();
@@ -51,6 +49,14 @@ function toolbarSetup() {
         var bannerHeight = banner.offsetHeight;
         paneHolder.height(vh - bannerHeight);
         paneHolder.width(vw);
+
+        if (paneHolder.width() - $('#tmp').width() <= 60){
+            $('#tmp').css('display', 'inline-block');
+            $('#tmp').css('margin', '30px 30px');
+        } else {
+            $('#tmp').css('display', '');
+            $('#tmp').css('margin', '30px auto');
+        }
     });
 
     var last_value = 11;
@@ -89,9 +95,6 @@ function toolbarSetup() {
         $("#font-size-input").val(clamp(Number(val), 1, 400));
     });
 
-
-    //editor page itself
-    const myIFrame = document.getElementById("pane");
     const banner = document.getElementById("banner");
     const paneHolder = $("#pane-holder");
     addEventListener("resize", (event) =>
@@ -101,6 +104,14 @@ function toolbarSetup() {
         var bannerHeight = banner.offsetHeight;
         paneHolder.height(vh - bannerHeight);
         paneHolder.width(vw);
+
+        if (paneHolder.width() - $('#tmp').width() <= 60){
+            $('#tmp').css('display', 'inline-block');
+            $('#tmp').css('margin', '30px 30px');
+        } else {
+            $('#tmp').css('display', '');
+            $('#tmp').css('margin', '30px auto');
+        }
     });
     var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
     var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
@@ -108,36 +119,7 @@ function toolbarSetup() {
     paneHolder.height(vh - bannerHeight);
     paneHolder.width(vw);
 
-    //myIFrame.setAttribute('style', myIFrame.getAttribute('style') + '; width: ' + pageWidth);
-    //myIFrame.setAttribute('style', myIFrame.getAttribute('style') + '; height: ' + pageHeight);
-    var body = myIFrame.contentWindow.document.body;
-    var docc = myIFrame.contentWindow.document;
-    var el = docc.createElement("div");
-    el.setAttribute('contenteditable', true);
-    el.setAttribute('style', 'background-color: white; margin:0; padding:0; overflow:hidden; outline: 0px solid transparent;');
-    el.setAttribute('style', el.getAttribute('style')+'; width: ' + pageWidth);
-    el.setAttribute('style', el.getAttribute('style')+'; height: ' + pageHeight);
-    el.textContent = 'AMOGUS DRIPPPP';
-    body.appendChild(el);
-    /*var el2 = docc.createElement("div");
-    el2.setAttribute('style', 'height: 40px');
-    body.appendChild(el2);
-    var el3 = docc.createElement("div");
-    el3.setAttribute('contenteditable', true);
-    el3.setAttribute('style', 'background-color: white; margin:0; padding:0; overflow:hidden; outline: 0px solid transparent;');
-    el3.setAttribute('style', el.getAttribute('style')+'; width: ' + pageWidth);
-    el3.setAttribute('style', el.getAttribute('style')+'; height: ' + pageHeight);
-    el3.textContent = 'AMOGUS DRIPPPP2';
-    body.appendChild(el3);*/
-    body.setAttribute('style', 'overflow:hidden; margin: 0 0; padding 0 0;');
-    myIFrame.contentWindow.document.body = body;
-
-    resizeIFrameToFitContent(myIFrame);
-}
-
-function resizeIFrameToFitContent( iFrame ) {
-    iFrame.width  = iFrame.contentWindow.document.body.scrollWidth;
-    iFrame.height = iFrame.contentWindow.document.body.scrollHeight;
+    initPages();
 }
 
 function clamp(num, min, max) {

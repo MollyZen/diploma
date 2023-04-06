@@ -143,6 +143,7 @@ body {
     cursor: pointer;
     position: relative;
     z-index: 3;
+    background-color: white;
 }
 
 .select_wrap .select_ul li:first-child:hover {

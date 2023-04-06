@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Editor</title>
     <link rel="stylesheet" href="/static/css/editor.css">
+    <link rel="stylesheet" href="/static/css/pages.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 
     <script src="/webjars/jquery/jquery.min.js"></script>
@@ -12,6 +13,7 @@
 
     <script src="/static/js/toolbar.js"></script>
     <script src="/static/js/editor-socket.js"></script>
+    <script src="/static/js/pages.js"></script>
     <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="js/jquery-3.6.4.js"><\/script>')</script>-->
 </head>
@@ -154,15 +156,13 @@
     </div>
 </div>
 
-
-<!-- TODO: add minimum margins when page doesnt fit properly -->
 <div id="pane-holder" style="width: 100%; overflow: auto;">
     <!--<div style="background-color: white; height: 29.7cm; width: 21.0cm;margin:20px auto; overflow: auto; box-sizing: border-box;" contenteditable="true">
     </div>-->
-    <div id="tmp" style="margin:20px auto; margin-left: max(20px, auto); overflow: hidden; height: fit-content; width: fit-content;">
-    <iframe id="pane" style="overflow: hidden; border: none; transform-origin: top left" src='about:blank'></iframe>
+    <div id="tmp" style="margin:30px auto; overflow: hidden; height: fit-content; width: fit-content;">
+    <!--<iframe id="pane" style="overflow: hidden; border: none; transform-origin: top left" src='about:blank'></iframe>-->
+    <div id="pane" style="overflow: hidden; transform-origin: top left; margin: 0 0; padding: 0 0; height: fit-content; width: fit-content; position: relative; z-index: 1"></div>
     </div>
-    <div id="end-page-padding" style="min-height: 80px"></div>
 </div>
 </body>
 

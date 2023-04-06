@@ -1,0 +1,29 @@
+.A4 {
+    width: 210mm;
+    height: 297mm;
+}
+
+.A4-landscape {
+    height: 210mm;
+    width: 297mm;
+}
+
+.A5 {
+    width: 148mm;
+    height: 210mm;
+}
+
+.A5-landscape {
+    height: 148mm;
+    width: 210mm;
+}
+
+.A6 {
+    width: 105mm;
+    height: 148mm;
+}
+
+.A6-landscape {
+    height: 105mm;
+    width: 148mm;
+}
