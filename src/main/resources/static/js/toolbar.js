@@ -88,7 +88,7 @@ function toolbarSetup() {
     //handling manual entry for font size
     $("#font-size-input").blur(function () {
         var val = $("#font-size-input").val();
-        if (val == "")
+        if (val === "")
             $("#font-size-input").val(last_value);
         else
             $("#font-size-input").val(parseInt(val, 10));
