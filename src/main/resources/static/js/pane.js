@@ -46,12 +46,53 @@ function addPage(prevPage, nextPage){
     const calcStatement = 'calc(' + pageHeight + ' - ' + topMargin + ' - ' + bottomMargin + ');';
     text.setAttribute('style', text.getAttribute('style') + ';max-height:' + calcStatement + ')');
     text.setAttribute('style', text.getAttribute('style') + ';height:' + calcStatement + ')');
+
+    const defaultDiv = document.createElement('div');
+    defaultDiv.appendChild(document.createElement('br'));
+    text.appendChild(defaultDiv);
+
+    margins.appendChild(text);
+    newPage.appendChild(margins);
+
+    const obj = new Page(newPage, margins, text, prevPage, nextPage);
+
     text.addEventListener('keydown', function (ev){
+        if (ev.key === 'Backspace'){
+            if (obj.prev) {
+                if (text.innerText.length === 0) {
+                    var prevText = obj.prev.text;
+                    prevText.focus();
+
+                    var selectedText = window.getSelection();
+                    var selectedRange = document.createRange();
+                    selectedRange.setStart(prevText, prevText.innerText);
+                    selectedRange.collapse(true);
+
+                    selectedText.removeAllRanges();
+                    selectedText.addRange(selectedRange);
+                    obj.prev.text.focus();
+                    try {
+                        return false;
+                    } finally {
+                        removePage(obj);
+                    }
+                }
+            }
+            else {
+                if (obj.text.innerText.length === 1 && obj.text.innerText[0].charCodeAt(0) === 10){
+                    ev.preventDefault();
+                }
+            }
+        }
+    })
+    text.addEventListener('beforeinput', function (ev){
+        if (ev.rangeParent.innerText && ev.rangeParent.innerText.length === 1 && ev.rangeParent.innerText[0].charCodeAt(0) === 10) {
+            ev.rangeParent.innerText = '';
+        }
         const curHeight = text.getAttribute('height');
-        //const addition = ev.
     })
     text.addEventListener('overflow', function (ev){
-        const nextPage = addPage();
+        const nextPage = addPage(obj, null);
         nextPage.text.focus();
         ev.preventDefault();
         return false;
