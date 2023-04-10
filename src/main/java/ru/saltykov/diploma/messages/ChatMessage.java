@@ -1,4 +1,4 @@
-package ru.saltykov.diploma.editor.messages;
+package ru.saltykov.diploma.messages;
 
 import lombok.Builder;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package ru.saltykov.diploma.editor.messages;
+package ru.saltykov.diploma.messages;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,8 @@ import lombok.extern.jackson.Jacksonized;
 @Data
 @Builder
 @Jacksonized
-public class StatusUpdate {
+public class CursorUpdate {
     String user;
-    Boolean isActive;
+    String position;
+    String rev;
 }

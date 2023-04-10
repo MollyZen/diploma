@@ -6,8 +6,15 @@ function setPane(newPane) {
 
 function initPages(){
     var prev = addPage(null, null);
-    var cur = addPage(prev, null);
-    removePage(cur);
+    /*var el = document.getElementById("editable")
+    var range = document.createRange()
+    var sel = window.getSelection()
+
+    range.setStart(el.childNodes[2], 5)
+    range.collapse(true)
+
+    sel.removeAllRanges()
+    sel.addRange(range)*/
 }
 function Page(page, margins, text, prev, next){
     this.page = page;
@@ -97,11 +104,6 @@ function addPage(prevPage, nextPage){
         ev.preventDefault();
         return false;
     })
-
-    margins.appendChild(text);
-    newPage.appendChild(margins);
-
-    const obj = new Page(newPage, margins, text, prevPage, nextPage);
 
     if (prevPage) {
         prevPage.page.after(newPage);
