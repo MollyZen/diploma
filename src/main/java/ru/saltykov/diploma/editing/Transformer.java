@@ -4,7 +4,9 @@ import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.messages.DocumentChange;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Transformer {
     AccessPoint accessPoint;
@@ -17,40 +19,50 @@ public class Transformer {
     }
 
     synchronized DocumentChange applyChanges(DocumentChange changes){
+        DocumentChange transformed = null;
         try{
-            parse(changes);
-        }catch (Exception ex){
+             transformed = parse(changes);
+            accessPoint.insertChanges(transformed);
+        }catch (Exception ignoed){}
 
-        }
-
-        return null;
+        return transformed;
     }
 
     private DocumentChange parse(DocumentChange changes) throws Exception{
         List<DocumentChange> prevChanges = new ArrayList<>();
         if (revision - changes.getRevision()  > 1) {
             prevChanges = accessPoint.getChangesFrom(changes.getRevision());
-            DocumentChange transformed = changes;
+            ParsedChanges transformed = parseChanges(changes);
             for (DocumentChange prevChange : prevChanges)
                 transformed = transform(transformed, prevChange);
-            accessPoint.insertChanges(transformed);
-            return transformed;
+            return transformed.toDocumentChange();
         }
         else
             return changes;
     }
 
-    private DocumentChange transform(DocumentChange changes, DocumentChange prevChanges){
-        DocumentChange transformed = new DocumentChange();
+    private ParsedChanges transform(ParsedChanges changes, DocumentChange prevChanges){
+        ParsedChanges transformed = new ParsedChanges();
         transformed.setRevision(changes.getRevision() + 1);
         transformed.setUser(changes.getUser());
 
+        ParsedChanges prevParsed = parseChanges(prevChanges);
 
+        Long affectedStart = changes.getStart();
+        long affectedEnd = changes.getStart() + changes.getLength();
 
+        Long prevAffectedStart = prevParsed.getStart();
+        long prevAffectedEnd = prevParsed.getStart() + prevParsed.getLength();
 
-        String oldChanges = prevChanges.getChanges();
+        if (affectedStart < prevAffectedStart && affectedEnd < prevAffectedStart){
+            return changes;
+        }
+        else if (affectedStart > prevAffectedEnd){
+            transformed.setStart(changes.getStart() + prevParsed.getCharLengthChange());
+        }
+        else {
 
-
+        }
 
         return transformed;
     }
@@ -70,8 +82,8 @@ public class Transformer {
         res.setLength(Long.parseLong(subsplit[1]) * (negative ? -1 : 1));
 
         //tokens
-        subsplit = split[1].split();
-
+        subsplit = split[1].split(" ");
+        res.setTokens(Arrays.stream(subsplit).map(e -> new FormattedToken(e.substring(0, 1), Long.parseLong(e.substring(1)))).collect(Collectors.toList()));
 
         //text
         res.setText(split[2]);
