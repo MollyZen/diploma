@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 public class ParsedChanges {
     private String user;
     private Long revision;
-    private Long start;
-    private Long length;
+    private Integer start;
+    private Integer length;
     private List<FormattedToken> tokens;
     private List<FormattedToken> negatedTokens;
     private String text;
@@ -20,14 +20,14 @@ public class ParsedChanges {
         DocumentChange res = new DocumentChange();
         res.setUser(this.user);
         res.setRevision(this.revision);
-        res.setChanges(tokens.stream().map(e -> e.getToken() + e.getValue()).collect(Collectors.joining(" ")));
+        res.setChanges(start.toString() + String.format("%+d", length) + "#" + tokens.stream().map(e -> e.getToken() + e.getValue()).collect(Collectors.joining(" ")) + "#" + text);
         return res;
     }
 
-    public Long getCharLengthChange() {
+    public Integer getCharLengthChange() {
         return tokens.stream()
                 .filter(e -> e.getToken().equals(AllowedTokens.CHAR_ADDED) || e.getToken().equals(AllowedTokens.CHAR_REMOVED))
-                .mapToLong(e -> {
+                .mapToInt(e -> {
                     if (e.getToken().equals(AllowedTokens.CHAR_REMOVED))
                         return e.getValue() * -1;
                     else return e.getValue();

@@ -7,5 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class FormattedToken {
     private String token;
-    private Long value;
+    private Integer value;
 }
