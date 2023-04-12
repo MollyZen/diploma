@@ -1,24 +1,31 @@
 var stompClient = null;
+var socket = null;
 
+const queryString = window.location.href;
+var split = queryString.split('/');
+split.pop();
+const fileId = split.pop();
 function connect() {
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const file = urlParams.get("")
-    var socket = new SockJS('/gs-guide-websocket');
+    var new_conn = function() {
+        socket = new SockJS('/gs-guide-websocket');
+    };
+    new_conn();
     stompClient = Stomp.over(socket);
     stompClient.heartbeat.outgoing = 10000;
     stompClient.heartbeat.incoming = 10000;
     stompClient.connect({}, function (frame) {
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/greetings', function (greeting) {
-            showGreeting(JSON.parse(greeting.body).content);
-        });
+        stompClient.subscribe('/user/queue/session/' + fileId, (message) => parseMessage(message));
     });
-    socket.onclose = function (error) {
-        console.log("AMOGI" + error);
+    socket.onclose = function (close) {
+        stompClient.disconnect();
+        socket.close();
+        console.log(close);
     };
     socket.onerror = function (error) {
-        console.log("AMOGI" + error);
+        stompClient.disconnect();
+        socket.close();
+        console.log(error);
     };
 }
 
@@ -30,20 +37,23 @@ function disconnect() {
     console.log("Disconnected");
 }
 
-function sendName() {
-    stompClient.send("/app/hello", {}, JSON.stringify({'name': $("#name").val()}));
-    stompClient.send("/app/testSend",{},{});
-}
-
-function showGreeting(message) {
-    $("#greetings").append("<tr><td>" + message + "</td></tr>");
-}
-
 $(function () {
     $("form").on('submit', function (e) {
         e.preventDefault();
     });
-    $( "#connect" ).click(function() { connect(); });
+    $( "#connect" ).click(function() { connect();});
     $( "#disconnect" ).click(function() { disconnect(); });
-    $( "#send" ).click(function() { sendName(); });
+    $( "#send" ).click(function() { stompClient.send('/app/session/' + fileId,{'message-id': makeid(5)},null); });
 });
+
+function makeid(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        counter += 1;
+    }
+    return result;
+}

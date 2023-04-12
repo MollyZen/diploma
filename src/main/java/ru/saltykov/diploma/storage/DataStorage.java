@@ -8,6 +8,7 @@ import java.util.List;
 public interface DataStorage {
 
     FileDescription createFile() throws IOException;
+    void updateFile(String fileId, String data);
     InputStream getFile(String filePath);
     List<FileDescriptor> getFiles(String user);
 }

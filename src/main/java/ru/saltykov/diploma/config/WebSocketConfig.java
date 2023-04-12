@@ -2,6 +2,7 @@ package ru.saltykov.diploma.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -17,9 +18,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         te.setThreadNamePrefix("wss-heartbeat-thread-");
         te.initialize();
 
-        config.enableSimpleBroker("/topic").setTaskScheduler(te).setHeartbeatValue(new long[]{10000, 10000});
+        config.enableSimpleBroker("/queue").setTaskScheduler(te).setHeartbeatValue(new long[]{10000, 10000});
         config.setApplicationDestinationPrefixes("/app");
-        config.setUserDestinationPrefix("secured/user");
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override

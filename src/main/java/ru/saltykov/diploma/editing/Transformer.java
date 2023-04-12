@@ -4,21 +4,23 @@ import lombok.SneakyThrows;
 import org.springframework.data.util.Pair;
 import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.messages.DocumentChange;
+import ru.saltykov.diploma.storage.DataStorage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class Transformer {
     private AccessPoint accessPoint;
+    private DataStorage dataStorage;
     private String fileId;
     private Long revision = 0L;
 
-    public Transformer(AccessPoint accessPoint, String fileId) {
+    public Transformer(AccessPoint accessPoint, DataStorage dataStorage, String fileId) {
         this.accessPoint = accessPoint;
+        this.dataStorage = dataStorage;
         this.fileId = fileId;
     }
 
@@ -37,7 +39,10 @@ public class Transformer {
     }
 
     synchronized void insertText(){
-        accessPoint.addText(revision, combineChanges(revision));
+        String text = combineChanges(revision);
+        accessPoint.addText(revision, text);
+        if (dataStorage != null)
+            dataStorage.updateFile(fileId, text);
     }
 
     private String combineChanges(Long revId){
