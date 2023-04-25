@@ -18,9 +18,10 @@
     <script src="/static/js/toolbar.js"></script>
     <script src="/static/js/editor-socket.js"></script>
     <script src="/static/js/pane.js"></script>
+    <script src="/static/js/data-rope.js"></script>
 </head>
 
-<body onload="toolbarSetup();" role="application" style="background-color: aqua; overflow: hidden;">
+<body onload="toolbarSetup();dataRopeTest();" role="application" style="background-color: aqua; overflow: hidden;">
 <noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
     enabled. Please enable
     Javascript and reload this page!
@@ -158,6 +159,8 @@
         </ul>
     </div>
 </div>
+
+<canvas id="myCanvas" width="1900" height="900" style="border:1px solid #000000;"></canvas>
 
 <div id="pane-holder" style="width: 100%; overflow: auto;">
     <div id="tmp" style="margin:30px auto; overflow: hidden; height: fit-content; width: fit-content;">
