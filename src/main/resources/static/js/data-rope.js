@@ -14,11 +14,7 @@ const StyleCodes = {
     'HEADER' : 9,
     'PARAGRAPH' : 10
 }
-var c;
-var ctx;
 function dataRopeTest() {
-    c = document.getElementById("myCanvas");
-    ctx = c.getContext("2d");
 
     insert('govno ', null, 0);
     insert('zhopa ', null, 0);
@@ -29,11 +25,20 @@ function dataRopeTest() {
     insert('after suka ', null, 5);
     insert('aaa ', null, 16);
 
-    console.log(getFullString(root));
-    console.log(getAffectedNode(root, 4));
+    insert('sss', null, 1);
+}
 
-    const t = new Tree()
-    t.bfs()
+function displayTree() {
+    if (document.getElementById) {
+        w = screen.availWidth;
+        h = screen.availHeight;
+    }
+    let popW = 800, popH = 700;
+    let leftPos = (w-popW)/2;
+    let topPos = (h-popH)/2;
+    let msgWindow = window.open('/static/treant-display.html',
+        'popup',
+        'width=' + popW + ',height=' + popH + ',top=' + topPos + ',left=' + leftPos + ',scrollbars=yes');
 }
 
 function TreeNode(parent, left, right, text, style) {
@@ -70,16 +75,16 @@ function TreeNode(parent, left, right, text, style) {
         this.children[0] = left;
         left.parent = this;
         this.length = left.length + (this.getRight() ? this.getRight().length : 0);
-        if (this.parent) this.parent.updateLength();
+        this.updateLength();
     }
     this.setRight = (right) => {
         this.children[1] = right;
         right.parent = this;
         this.length = right.length + (this.getLeft() ? this.getLeft().length : 0);
-        if (this.parent) this.parent.updateLength();
+        this.updateLength();
     }
     this.updateLength = () => {
-        this.length = this.getLeft() ? this.getLeft().length : 0 + this.getRight() ? this.getRight().length : 0;
+        this.length = (this.getLeft() ? this.getLeft().length : 0) + (this.getRight() ? this.getRight().length : 0);
         if (this.parent) this.parent.updateLength();
     }
 }
@@ -134,7 +139,15 @@ function insert(text, style, pos) {
             }
         }
     } else {
-
+        let [first, second] = splitString(affectedNode.text, remainingPos);
+        let node1 = new TreeNode(null, null, null, first, affectedNode.style);
+        node1 = concat(node1, newNode);
+        let node2 = new TreeNode(null, null, null, second, affectedNode.style);
+        node1 = concat(node1, node2);
+        if (isLeft)
+            affectedNode.parent.setLeft(node1);
+        else
+            affectedNode.parent.setRight(node1);
     }
 }
 
@@ -216,44 +229,8 @@ function getFullString(start){
     return res;
 }
 
-class Tree{
-    bfs() {
-        const queue = []
-        const black = "#000"
-        queue.push(root)
-        queue[0].position = {x: 800, y: 44};
+function splitString(str, index) {
+    const result = [str.slice(0, index), str.slice(index)];
 
-        while (queue.length !== 0) {
-            const node = queue.shift()
-            const {x, y} = node.position
-            const color = "#" + ((1 << 24) * Math.random() | 0).toString(16)
-
-            ctx.beginPath()
-            ctx.strokeStyle = black
-            ctx.fillStyle = color
-            ctx.fill()
-            ctx.stroke()
-            ctx.strokeStyle = black
-            ctx.strokeText(node.text ? node.length + ', "' + node.text + '"' : node.length, x, y)
-
-            if (node.getLeft()){
-                node.getLeft().position = {x: x - 100, y: y + 100};
-                const {x: x1, y: y1} = node.getLeft().position;
-                ctx.beginPath();
-                ctx.moveTo(x, y + 20)
-                ctx.lineTo(x1 + 20, y1 - 20)
-                ctx.stroke()
-                queue.push(node.getLeft())
-            }
-            if (node.getRight()){
-                node.getRight().position = {x: x + 100, y: y + 100};
-                const {x: x1, y: y1} = node.getRight().position;
-                ctx.beginPath();
-                ctx.moveTo(x, y + 20)
-                ctx.lineTo(x1 - 20, y1 - 20)
-                ctx.stroke()
-                queue.push(node.getRight())
-            }
-        }
-    }
+    return result;
 }
