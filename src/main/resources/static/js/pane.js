@@ -106,7 +106,7 @@ function addPage(prevPage, nextPage){
     })
     text.addEventListener('click', (e) => {
         getCaretIndex(text);
-        getCaretCoordinates();
+        getCaretCoordinates(text);
         toggleTooltip(e, text);
     })
 
@@ -171,7 +171,7 @@ function getCaretIndex(element) {
     return position;
 }
 
-function getCaretCoordinates() {
+function getCaretCoordinates(element) {
     let x = 0,
         y = 0;
     const isSupported = typeof window.getSelection !== "undefined";
@@ -184,15 +184,11 @@ function getCaretCoordinates() {
             // Collapse the range to the start, so there are not multiple chars selected
             range.collapse(true);
             // getCientRects returns all the positioning information we need
-            const rect = range.getClientRects()[0];
-            if (rect) {
-                x = rect.left; // since the caret is only 1px wide, left == right
-                y = rect.top; // top edge of the caret
-            }
-            else {
-                /*x =
-                    y =*/
-            }
+            let rect = range.getClientRects()[0];
+            if (rect == null)
+                rect = element.getClientRects()[0];
+            x = rect.left; // since the caret is only 1px wide, left == right
+            y = rect.top; // top edge of the caret
         }
     }
     console.log({x,y});
