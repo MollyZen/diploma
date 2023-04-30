@@ -54,9 +54,9 @@ function addPage(prevPage, nextPage){
     text.setAttribute('style', text.getAttribute('style') + ';max-height:' + calcStatement + ')');
     text.setAttribute('style', text.getAttribute('style') + ';height:' + calcStatement + ')');
 
-    const defaultDiv = document.createElement('div');
-    defaultDiv.appendChild(document.createElement('br'));
-    text.appendChild(defaultDiv);
+    const defaultParagraph = document.createElement('div');
+    defaultParagraph.appendChild(document.createElement('br'));
+    text.appendChild(defaultParagraph);
 
     margins.appendChild(text);
     newPage.appendChild(margins);
@@ -104,6 +104,11 @@ function addPage(prevPage, nextPage){
         ev.preventDefault();
         return false;
     })
+    text.addEventListener('click', (e) => {
+        getCaretIndex(text);
+        getCaretCoordinates();
+        toggleTooltip(e, text);
+    })
 
     if (prevPage) {
         prevPage.page.after(newPage);
@@ -115,16 +120,6 @@ function addPage(prevPage, nextPage){
 
     return obj;
 }
-
-function addPageBreak(page){
-    const pageBreak = document.createElement("div");
-    pageBreak.setAttribute('style', 'height: 30px;');
-    page.page.after(pageBreak);
-    page.break = pageBreak;
-
-    return pageBreak;
-}
-
 function removePage(page) {
     page.page.remove();
     if (page.prev) {
@@ -138,7 +133,118 @@ function removePage(page) {
     }
 }
 
+function addPageBreak(page){
+    const pageBreak = document.createElement("div");
+    pageBreak.setAttribute('style', 'height: 30px;');
+    page.page.after(pageBreak);
+    page.break = pageBreak;
+
+    return pageBreak;
+}
 function removePageBreak(page) {
     page.break.remove();
     page.break = null;
+}
+
+function addDiv(anchorElement, isBefore){
+    const defaultParagraph = document.createElement('div');
+    defaultParagraph.appendChild(document.createElement('br'));
+
+    return defaultParagraph;
+}
+
+//cursor position in text + visual
+function getCaretIndex(element) {
+    let position = 0;
+    const isSupported = typeof window.getSelection !== "undefined";
+    if (isSupported) {
+        const selection = window.getSelection();
+        if (selection.rangeCount !== 0) {
+            const range = window.getSelection().getRangeAt(0);
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(element);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            position = preCaretRange.toString().length;
+        }
+    }
+    console.log(position);
+    return position;
+}
+
+function getCaretCoordinates() {
+    let x = 0,
+        y = 0;
+    const isSupported = typeof window.getSelection !== "undefined";
+    if (isSupported) {
+        const selection = window.getSelection();
+        // Check if there is a selection (i.e. cursor in place)
+        if (selection.rangeCount !== 0) {
+            // Clone the range
+            const range = selection.getRangeAt(0).cloneRange();
+            // Collapse the range to the start, so there are not multiple chars selected
+            range.collapse(true);
+            // getCientRects returns all the positioning information we need
+            const rect = range.getClientRects()[0];
+            if (rect) {
+                x = rect.left; // since the caret is only 1px wide, left == right
+                y = rect.top; // top edge of the caret
+            }
+            else {
+                /*x =
+                    y =*/
+            }
+        }
+    }
+    console.log({x,y});
+    return { x, y };
+}
+
+//showing usersname next to cursor
+function toggleTooltip(event, contenteditable) {
+    const tooltip = document.getElementById("tooltip");
+    if (contenteditable.contains(event.target)) {
+        const { x, y } = getCaretCoordinates();
+        tooltip.setAttribute("aria-hidden", "false");
+        tooltip.setAttribute(
+            "style",
+            `display: inline-block; left: ${x - 32}px; top: ${y - 36}px`
+        );
+    } else {
+        tooltip.setAttribute("aria-hidden", "true");
+        tooltip.setAttribute("style", "display: none;");
+    }
+}
+
+//colours for users/cursors
+function getHashOfString (str){
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    hash = Math.abs(hash);
+    return hash;
+}
+function normalizeHash(hash, min, max){
+    return Math.floor((hash % (max - min)) + min);
+}
+
+function generateHSL(name) {
+    const hRange = [0, 360];
+    const sRange = [50, 75];
+    const lRange = [25, 60];
+
+    const hash = getHashOfString(name);
+    const h = normalizeHash(hash, hRange[0], hRange[1]);
+    const s = normalizeHash(hash, sRange[0], sRange[1]);
+    const l = normalizeHash(hash, lRange[0], lRange[1]);
+    return [h, s, l];
+}
+
+function HSLtoString(hsl){
+    return `hsl(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%)`;
+}
+
+function testColourToConsole(str){
+    let hsl = HSLtoString(generateHSL(str));
+    console.log('%c ' + str, 'background-color: ' + hsl);
 }

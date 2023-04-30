@@ -191,3 +191,20 @@ body {
     margin: 20px 0;
     cursor: pointer;
 }
+
+#tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4rem;
+    display: none;
+    z-index: 9999;
+    background: black;
+    color: white;
+    border-radius: 0.25rem;
+    padding: 0.4rem;
+    font-size: 0.8rem;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 700;
+}
