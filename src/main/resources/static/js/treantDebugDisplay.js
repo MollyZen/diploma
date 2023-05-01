@@ -7,7 +7,7 @@ var simple_chart_config = [
 var my_chart;
 var root;
 function generateTree() {
-    root = window.opener.root;
+    root = window.opener.ropeRoot;
     const t = new Tree()
     t.bfs()
     my_chart = new Treant(simple_chart_config, null);

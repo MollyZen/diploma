@@ -106,7 +106,6 @@ function addPage(prevPage, nextPage){
     })
     text.addEventListener('click', (e) => {
         getCaretIndex(text);
-        getCaretCoordinates(text);
         toggleTooltip(e, text);
     })
 
@@ -191,19 +190,32 @@ function getCaretCoordinates(element) {
             y = rect.top; // top edge of the caret
         }
     }
-    console.log({x,y});
-    return { x, y };
+    const offset = cumulativeOffset(element);
+    let res = {x: x - offset.left + element.offsetLeft, y: y - offset.top + element.offsetTop};
+    console.log(res);
+    return res;
 }
 
-//showing usersname next to cursor
+function cumulativeOffset(element) {
+    let top = 0, left = 0;
+    do {
+        top += element.offsetTop  || 0;
+        left += element.offsetLeft || 0;
+        element = element.offsetParent;
+    } while(element);
+
+    return {top, left};
+}
+
+//showing username next to cursor
 function toggleTooltip(event, contenteditable) {
     const tooltip = document.getElementById("tooltip");
     if (contenteditable.contains(event.target)) {
-        const { x, y } = getCaretCoordinates();
+        const { x, y } = getCaretCoordinates(contenteditable);
         tooltip.setAttribute("aria-hidden", "false");
         tooltip.setAttribute(
             "style",
-            `display: inline-block; left: ${x - 32}px; top: ${y - 36}px`
+            `display: inline-block; left: ${x}px; top: ${y - 20}px`
         );
     } else {
         tooltip.setAttribute("aria-hidden", "true");

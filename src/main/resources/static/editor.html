@@ -14,11 +14,11 @@
     <script src="/webjars/sockjs-client/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
 
-    <script src="/static/js/collaborative-editing.js"></script>
     <script src="/static/js/toolbar.js"></script>
     <script src="/static/js/editor-socket.js"></script>
     <script src="/static/js/pane.js"></script>
     <script src="/static/js/data-rope.js"></script>
+    <script src="/static/js/collaborative-editing.js"></script>
 </head>
 
 <body onload="toolbarSetup();dataRopeTest();" role="application" style="background-color: aqua; overflow: hidden;">
@@ -51,6 +51,7 @@
             <div class="menu_right">
                 <span id="firstName"></span>
                 <span id="lastName"></span>
+                <button id="displayTree" onclick="displayTree()">DisplayTree</button>
                 <button id="connect">Connect</button>
                 <button id="send">Send</button>
                 <div id="images">
@@ -162,11 +163,11 @@
 
 <div id="pane-holder" style="width: 100%; overflow: auto;">
     <div id="tmp" style="margin:30px auto; overflow: hidden; height: fit-content; width: fit-content;">
-    <div id="pane" style="overflow: hidden; transform-origin: top left; margin: 0 0; padding: 0 0; height: fit-content; width: fit-content; position: relative; z-index: 1"></div>
+        <div id="pane" style="overflow: hidden; transform-origin: top left; margin: 0 0; padding: 0 0; height: fit-content; width: fit-content; position: relative; z-index: 1">
+            <span id = "tooltip" class="tooltip" aria-hidden="true">Molly Zen</span>
+        </div>
     </div>
+
 </div>
-
-<span id="tooltip" aria-hidden="true">Hey</span>
-
 </body>
 </html>

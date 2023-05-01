@@ -1,4 +1,4 @@
-var root =  new TreeNode(null, null, null,null, null);
+var ropeRoot =  new TreeNode(null, null, null,null, null);
 const maxSpanSize = 64;
 
 const StyleCodes = {
@@ -16,16 +16,18 @@ const StyleCodes = {
 }
 function dataRopeTest() {
 
-    insert('govno ', null, 0);
-    insert('zhopa ', null, 0);
-    insert('suka ', null, 0);
+    insertText('govno ', null, 0);
+    insertText('zhopa ', null, 0);
+    insertText('suka ', null, 0);
 
-    insert('blya', null, 17);
+    insertText('blya', null, 17);
 
-    insert('after suka ', null, 5);
-    insert('aaa ', null, 16);
+    insertText('after suka ', null, 5);
+    insertText('aaa ', null, 16);
 
-    insert('sss', null, 1);
+    insertText('sss', null, 1);
+
+    updateAccordingToModel();
 }
 
 function displayTree() {
@@ -46,15 +48,8 @@ function TreeNode(parent, left, right, text, style) {
     this.children = [left, right];
     this.text = text;
     this.length = text ? text.length : null;
+    this.newLineCount = text ? (text.match(/\n/g)||[]).length : 0;
     this.style = [];
-
-    /////
-    this.r = 20;
-
-    this.position = { x: 0, y: 0 };
-
-    /////
-
     this.style.concat(Array.isArray(style) ? style : style ? [style] : []);
 
     //functions
@@ -62,7 +57,7 @@ function TreeNode(parent, left, right, text, style) {
         return text;
     }
     this.getLength = () => {
-        return this.length;
+        return this.text? this.text.length : this.length;
     }
     this.getLeft = () => {
         return this.children[0];
@@ -70,54 +65,86 @@ function TreeNode(parent, left, right, text, style) {
     this.getRight = () => {
         return this.children[1];
     }
-
+    this.setText = (text) => {
+        this.newLineCount = text ? (text.match(/\n/g)||[]).length : 0;
+        this.text = text;
+        this.updateLength();
+    }
     this.setLeft = (left) => {
         this.children[0] = left;
         left.parent = this;
-        this.length = left.length + (this.getRight() ? this.getRight().length : 0);
         this.updateLength();
     }
     this.setRight = (right) => {
         this.children[1] = right;
         right.parent = this;
-        this.length = right.length + (this.getLeft() ? this.getLeft().length : 0);
         this.updateLength();
     }
     this.updateLength = () => {
-        this.length = (this.getLeft() ? this.getLeft().length : 0) + (this.getRight() ? this.getRight().length : 0);
-        if (this.parent) this.parent.updateLength();
+        if (this.text == null)
+            this.length = (this.getLeft() ? this.getLeft().length : 0) + (this.getRight() ? this.getRight().length : 0);
+        if (this.parent)
+            this.parent.updateLength();
+    }
+    this.deleteLeft = () => {
+        if (this.getLeft()) {
+            this.getLeft().deleteLeft();
+            this.getLeft().deleteRight();
+            this.children[0] = null;
+        }
+        this.updateLength();
+    }
+    this.deleteRight = () => {
+        if (this.getRight()) {
+            this.getRight().deleteLeft();
+            this.getRight().deleteRight();
+            this.children[1] = null;
+        }
+        this.updateLength();
+    }
+    this.isLeft = () => {
+        return this.parent.getLeft() === this;
+    }
+    this.nextTextNode = () => {
+        if (this.text) return nextTextNode(this);
+        else {
+            if (this.getLeft())
+                this.getLeft().nextTextNode()
+            else if (this.getRight())
+                this.getRight().nextTextNode();
+        }
+        return null;
     }
 }
 
-function insert(text, style, pos) {
+function insertText(text, style, pos) {
     let newNode = new TreeNode(null, null, null, text, style);
 
-    if (pos === 0 || pos === root.length){
-        if (root.getLeft() || root.getRight() || root.getText())
-            root = pos === 0 ? concat(newNode, root) : concat(root, newNode);
+    if (pos === 0 || pos === ropeRoot.length){
+        if (ropeRoot.getLeft() || ropeRoot.getRight() || ropeRoot.getText())
+            ropeRoot = pos === 0 ? concat(newNode, ropeRoot) : concat(ropeRoot, newNode);
         else
-            root = newNode;
+            ropeRoot = newNode;
 
-        return root;
+        return ropeRoot;
     }
 
-    let toChange = getAffectedNode(root, pos);
+    let toChange = getAffectedNode(ropeRoot, pos);
     let affectedNode = toChange[0];
     let remainingPos = pos - toChange[1];
 
     let isLeft = affectedNode.parent.getLeft() === affectedNode;
 
-    let modifiedUpperNode;
     if (remainingPos === 0) {
         if (isLeft) {
-            if (affectedNode.parent.getRight() === null) {
+            if (affectedNode.parent.getRight() == null) {
                 affectedNode.parent.setRight(affectedNode);
                 affectedNode.parent.setLeft(newNode);
             } else {
                 affectedNode.parent.setLeft(concat(newNode, affectedNode));
             }
         } else {
-            if (affectedNode.parent.getLeft() === null) {
+            if (affectedNode.parent.getLeft() == null) {
                 affectedNode.parent.setLeft(newNode);
             } else {
                 affectedNode.parent.setRight(concat(newNode, affectedNode));
@@ -125,13 +152,13 @@ function insert(text, style, pos) {
         }
     } else if (remainingPos === affectedNode.length) {
         if (isLeft) {
-            if (affectedNode.parent.getRight() === null) {
+            if (affectedNode.parent.getRight() == null) {
                 affectedNode.parent.setRight(newNode);
             } else {
                 affectedNode.parent.setLeft(concat(affectedNode, newNode));
             }
         } else {
-            if (affectedNode.parent.getLeft() === null) {
+            if (affectedNode.parent.getLeft() == null) {
                 affectedNode.parent.setLeft(affectedNode);
                 affectedNode.parent.setRight(newNode);
             } else {
@@ -149,6 +176,69 @@ function insert(text, style, pos) {
         else
             affectedNode.parent.setRight(node1);
     }
+
+    return affectedNode;
+}
+
+function deleteText(pos, length) {
+    let start = getAffectedNode(ropeRoot, pos)
+    let affected = start[0];
+    let remainingPos = pos - affected[1];
+
+    let remainingLength = length;
+
+    let lastNode = affected;
+    let nodeLength = lastNode.getLength();
+    let parent = lastNode.parent;
+    let isLeft = lastNode.isLeft();
+
+    if (remainingPos > 0) {
+        let toDelete = clamp(remainingLength, 0, nodeLength);
+        remainingLength -= toDelete;
+        deletePartFromTextNode(lastNode, remainingPos, toDelete);
+        lastNode = nextTextNode(lastNode);
+    }
+    else {
+        if (nodeLength > remainingLength) {
+            deletePartFromTextNode(lastNode, 0, remainingLength);
+            remainingLength = 0;
+        }
+        else {
+            remainingLength -= nodeLength;
+            lastNode = nextTextNode(lastNode);
+            isLeft ? parent.deleteLeft() : parent.deleteRight();
+            while (parent.getLeft() == null && parent.getRight() == null){
+                parent.isLeft() ? parent.parent.deleteLeft() : parent.parent.deleteRight();
+                parent = parent.parent;
+            }
+        }
+    }
+
+    while (remainingLength > 0){
+        nodeLength = lastNode.getLength();
+        parent = lastNode.parent;
+        isLeft = lastNode.isLeft();
+        if (nodeLength > remainingLength) {
+            deletePartFromTextNode(lastNode, 0, remainingLength);
+            remainingLength = 0;
+        }
+        else {
+            remainingLength -= nodeLength;
+            lastNode = nextTextNode(lastNode);
+            isLeft ? parent.deleteLeft() : parent.deleteRight();
+            while (parent.getLeft() == null && parent.getRight() == null){
+                parent.isLeft() ? parent.parent.deleteLeft() : parent.parent.deleteRight();
+                parent = parent.parent;
+            }
+        }
+    }
+
+}
+
+function deletePartFromTextNode(node, pos, length){
+    let split = splitString(node.text, pos);
+    let remaining = splitString(split[1], length);
+    node.setText(split[0] + remaining[1]);
 }
 
 function concat(left, right) {
@@ -163,12 +253,21 @@ function getAffectedNode(start, pos) {
     let posChecked = 0;
     let node = start;
     while (true) {
-        if (pos === 0 || pos === root.length || node.text)
-            break;
+        if (node.text)
+            break
+        else if (pos === 0) {
+            while (node.text == null)
+                node = node.getLeft() || node.getRight();
+        }
+        else if (pos === ropeRoot.length){
+            while (node.text == null)
+                node = node.getRight() || node.getLeft();
+            posChecked = ropeRoot.length;
+        }
         else if (node.getLeft() && (posChecked + node.getLeft().getLength()) >= pos) {
             node = node.getLeft();
         }
-        else if (node.getRight() && (posChecked + node.getRight().getLength()) <= pos) {
+        else if (node.getRight() && (posChecked + node.getRight().getLength()) >= pos) {
             posChecked += node.getLeft().getLength();
             node = node.getRight();
         }
@@ -183,7 +282,7 @@ function nextTextNode(start){
     let parent = start.parent;
 
     while (parent){
-        if (parent.getRight() === node || parent.getRight() === null){
+        if (parent.getRight() === node || parent.getRight() == null){
             node = parent;
             parent = node.parent;
         }
@@ -193,10 +292,12 @@ function nextTextNode(start){
 
     if (parent) {
         node = parent.getRight();
-        while (node.text === null || node.getLeft()){
-            node = parent.left;
+        while (node.text == null || node.getLeft()){
+            node = node.getLeft();
         }
     }
+    else
+        node = null
 
     return node;
 }
@@ -230,7 +331,5 @@ function getFullString(start){
 }
 
 function splitString(str, index) {
-    const result = [str.slice(0, index), str.slice(index)];
-
-    return result;
+    return [str.slice(0, index), str.slice(index)];
 }
