@@ -54,9 +54,7 @@ function addPage(prevPage, nextPage){
     text.setAttribute('style', text.getAttribute('style') + ';max-height:' + calcStatement + ')');
     text.setAttribute('style', text.getAttribute('style') + ';height:' + calcStatement + ')');
 
-    const defaultParagraph = document.createElement('div');
-    defaultParagraph.appendChild(document.createElement('br'));
-    text.appendChild(defaultParagraph);
+    addDiv(text);
 
     margins.appendChild(text);
     newPage.appendChild(margins);
@@ -91,6 +89,69 @@ function addPage(prevPage, nextPage){
                 }
             }
         }
+        else if (ev.key === 'Enter'){
+            if (!ev.shiftKey){
+                ev.preventDefault();
+
+                let parent;
+                if (window.getSelection().anchorNode.tagName === 'br' || window.getSelection().anchorNode.nodeName === '#text') {
+                    parent = window.getSelection().anchorNode.parentElement;
+                }
+                else
+                    parent =  window.getSelection().anchorNode;
+
+                /*let _range = document.getSelection().getRangeAt(0)
+                let range = _range.cloneRange()
+                range.selectNodeContents(parent)
+                range.setEnd(_range.endContainer, _range.endOffset)
+                let offset = range.toString().length;*/
+                let offset = getCaretPosition(parent);
+
+                const newDiv = addDiv(parent.parentElement, true);
+                if (parent.textContent.length !== offset) {
+                    const text = parent.childNodes[0].textContent;
+                    parent.removeChild(parent.childNodes[0]);
+                    let lastId = parent.childNodes.length;
+                    let textNode = document.createTextNode(text.slice(0, offset));
+                    if (parent.childNodes[0])
+                        parent.childNodes[0].before(textNode);
+                    else
+                        parent.appendChild(textNode);
+                    newDiv.childNodes[0].insertAdjacentText('afterbegin', text.slice(offset));
+                }
+                setCaret(this, newDiv, 0);
+            }
+            else{
+                ev.preventDefault();
+
+                let parent;
+                if (window.getSelection().anchorNode.tagName === 'br' || window.getSelection().anchorNode.nodeName === '#text') {
+                    parent = window.getSelection().anchorNode.parentElement;
+                }
+                else
+                    parent =  window.getSelection().anchorNode;
+
+                let _range = document.getSelection().getRangeAt(0)
+                let range = _range.cloneRange()
+                range.selectNodeContents(parent)
+                range.setEnd(_range.endContainer, _range.endOffset)
+                let offset = range.toString().length;
+
+                const text = parent.childNodes[0].textContent;
+                parent.removeChild(parent.childNodes[0]);
+                const node0 = document.createTextNode(text.slice(0, offset));
+                const node1 = document.createElement('br');
+                const node2 = document.createTextNode(text.slice(offset));
+                if (parent.childNodes[0])
+                    parent.childNodes[0].before(node0, node1, node2);
+                else {
+                    parent.appendChild(node0);
+                    parent.appendChild(node1);
+                    parent.appendChild(node2);
+                }
+            }
+        }
+        toggleTooltip(ev, text);
     })
     text.addEventListener('beforeinput', function (e){
         /*if (ev.rangeParent.innerText && ev.rangeParent.innerText.length === 1 && ev.rangeParent.innerText[0].charCodeAt(0) === 10) {
@@ -98,6 +159,10 @@ function addPage(prevPage, nextPage){
         }
         const curHeight = text.getAttribute('height');*/
         //sendChanges(ev.target, ev.target.value, null, null);
+        /*const children = e.rangeParent.childNodes;
+        const lastChild = children[children.length - 1];
+        if (lastChild && lastChild.classList.contains('default-break'))
+            e.rangeParent.removeChild(lastChild);*/
     })
     text.addEventListener('input', (ev) => {
         toggleTooltip(ev, text);
@@ -123,6 +188,38 @@ function addPage(prevPage, nextPage){
 
     return obj;
 }
+
+let w3 = true;
+let ie = false;
+function getCaretPosition(element) {
+    var caretOffset = 0;
+    if (w3) {
+        var range = window.getSelection().getRangeAt(0);
+        var preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(element);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        caretOffset = preCaretRange.toString().length;
+    } else if (ie) {
+        var textRange = document.selection.createRange();
+        var preCaretTextRange = document.body.createTextRange();
+        preCaretTextRange.moveToElementText(element);
+        preCaretTextRange.setEndPoint("EndToEnd", textRange);
+        caretOffset = preCaretTextRange.text.length;
+    }
+    return caretOffset;
+}
+
+function setCaret(editable, subel, pos) {
+    let range = document.createRange()
+    let sel = window.getSelection()
+
+    range.setStart(subel, pos)
+    range.collapse(true)
+
+    sel.removeAllRanges()
+    sel.addRange(range)
+}
+
 function removePage(page) {
     page.page.remove();
     if (page.prev) {
@@ -149,10 +246,22 @@ function removePageBreak(page) {
     page.break = null;
 }
 
-function addDiv(anchorElement, isBefore){
+function addDefaultBreak(anchor){
+    const br = document.createElement('br');
+    br.setAttribute('class', 'default-break');
+    anchor.appendChild(br);
+    return br;
+}
+function addDiv(anchorElement, isAfter){
     const defaultParagraph = document.createElement('div');
-    defaultParagraph.appendChild(document.createElement('br'));
-
+    const span = document.createElement('span');
+    addDefaultBreak(span);
+    defaultParagraph.appendChild(span);
+//    anchorElement.appendChild(defaultParagraph);
+    if (isAfter)
+        anchorElement.after(defaultParagraph);
+    else
+        anchorElement.appendChild(defaultParagraph);
     return defaultParagraph;
 }
 
