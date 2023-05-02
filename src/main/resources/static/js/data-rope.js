@@ -192,6 +192,12 @@ function deleteText(pos, length) {
     let parent = lastNode.parent;
     let isLeft = lastNode.isLeft();
 
+    if (length === ropeRoot.getLength()){
+        ropeRoot.deleteLeft();
+        ropeRoot.deleteRight();
+        return;
+    }
+
     if (remainingPos > 0) {
         let toDelete = clamp(remainingLength, 0, nodeLength);
         remainingLength -= toDelete;

@@ -92,11 +92,15 @@ function addPage(prevPage, nextPage){
             }
         }
     })
-    text.addEventListener('beforeinput', function (ev){
-        if (ev.rangeParent.innerText && ev.rangeParent.innerText.length === 1 && ev.rangeParent.innerText[0].charCodeAt(0) === 10) {
+    text.addEventListener('beforeinput', function (e){
+        /*if (ev.rangeParent.innerText && ev.rangeParent.innerText.length === 1 && ev.rangeParent.innerText[0].charCodeAt(0) === 10) {
             ev.rangeParent.innerText = '';
         }
-        const curHeight = text.getAttribute('height');
+        const curHeight = text.getAttribute('height');*/
+        //sendChanges(ev.target, ev.target.value, null, null);
+    })
+    text.addEventListener('input', (ev) => {
+        toggleTooltip(ev, text);
     })
     text.addEventListener('overflow', function (ev){
         const nextPage = addPage(obj, null);
@@ -184,14 +188,19 @@ function getCaretCoordinates(element) {
             range.collapse(true);
             // getCientRects returns all the positioning information we need
             let rect = range.getClientRects()[0];
-            if (rect == null)
-                rect = element.getClientRects()[0];
-            x = rect.left; // since the caret is only 1px wide, left == right
-            y = rect.top; // top edge of the caret
+            if (rect){
+                const offset = cumulativeOffset(element);
+                const drip = element.getBoundingClientRect();
+                x = rect.left - drip.left + element.offsetLeft;
+                y = rect.top - drip.top + element.offsetTop;
+            }
+            else{
+                x = range.startContainer.offsetLeft;
+                y = range.startContainer.offsetTop;
+            }
         }
     }
-    const offset = cumulativeOffset(element);
-    let res = {x: x - offset.left + element.offsetLeft, y: y - offset.top + element.offsetTop};
+    let res = {x , y};
     console.log(res);
     return res;
 }
