@@ -94,11 +94,16 @@ function addPage(prevPage, nextPage){
                 ev.preventDefault();
 
                 let parent;
-                if (window.getSelection().anchorNode.tagName === 'br' || window.getSelection().anchorNode.nodeName === '#text') {
+                if (window.getSelection().anchorNode.tagName === 'BR' || window.getSelection().anchorNode.nodeName === '#text')
                     parent = window.getSelection().anchorNode.parentElement;
-                }
                 else
                     parent =  window.getSelection().anchorNode;
+
+                if (parent.tagName === 'DIV'){
+                    const ch  = window.getSelection().anchorNode.childNodes;
+                    parent = ch[ch.length - 1];
+                }
+
 
                 /*let _range = document.getSelection().getRangeAt(0)
                 let range = _range.cloneRange()
@@ -119,7 +124,7 @@ function addPage(prevPage, nextPage){
                         parent.appendChild(textNode);
                     newDiv.childNodes[0].insertAdjacentText('afterbegin', text.slice(offset));
                 }
-                setCaret(this, newDiv, 0);
+                setCaret(this, newDiv, 1);
             }
             else{
                 ev.preventDefault();
