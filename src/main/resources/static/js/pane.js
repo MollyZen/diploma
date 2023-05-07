@@ -1,68 +1,67 @@
 var pane;
+var firstPage;
+const caretAdjustment = 0;
+
+let pages = new Map();
+function updateAccordingToModel(){
+    var node = ropeRoot;
+    while (node){
+        node = nextTextNode(node);
+    }
+}
+
+let thereWasDelete = false;
 
 function setPane(newPane) {
     pane = newPane;
-}
+    pane.addEventListener('input', (ev) => {
+        const range = window.getSelection().getRangeAt(0);
+        const preCaretRange = range.cloneRange();
+        let parent = preCaretRange.startContainer;
+        if (parent.nodeName === '#text')
+            parent = parent.parentElement;
+        if (parent.innerText.length === 0 && parent.innerText.match(/\n+/g)) {
+            if (thereWasDelete) {
+                const tmp = parent.childNodes;
+                tmp[tmp.length -1].setAttribute('class', 'default-break');
+                thereWasDelete = false;
+            }
+            else
+                addDefaultBreak(parent);
+        }
 
-function initPages(){
-    var prev = addPage(null, null);
-    /*var el = document.getElementById("editable")
-    var range = document.createRange()
-    var sel = window.getSelection()
+        getCaretIndex(pane);
+        toggleTooltip(ev, pane);
+    })
+    //mouse
+    pane.addEventListener('click', (e) => {
+        getCaretIndex(pane);
+        toggleTooltip(e, pane);
+    })
+    //buttons
+    pane.addEventListener('keydown', function (ev){
+        let text = ev.target;
+        while (text && text.className !== 'text'){
+            text = text.parentElement;
+        }
+        let obj = pages.get(text);
 
-    range.setStart(el.childNodes[2], 5)
-    range.collapse(true)
-
-    sel.removeAllRanges()
-    sel.addRange(range)*/
-}
-function Page(page, margins, text, prev, next){
-    this.page = page;
-    this.margins = margins;
-    this.text = text;
-    this.prev = prev;
-    this.next = next;
-    this.break = null;
-}
-
-function addPage(prevPage, nextPage){
-    const pageWidth = '210mm';
-    const pageHeight = '297mm';
-
-    const topMargin = '25.4mm';
-    const bottomMargin = '25.4mm';
-    const leftMargin = '25.4mm';
-    const rightMargin = '25.4mm';
-
-    const newPage = document.createElement("div");
-    newPage.setAttribute('style', 'background-color: white; margin:0; padding:0; overflow:hidden;');
-    newPage.setAttribute('style', newPage.getAttribute('style')+'; width: ' + pageWidth);
-    newPage.setAttribute('style', newPage.getAttribute('style')+'; height: ' + pageHeight);
-    newPage.setAttribute('class', 'A4');
-
-    const margins = document.createElement("div");
-    margins.setAttribute('style', 'margin-left: ' + topMargin);
-    margins.setAttribute('style', margins.getAttribute('style')+'; margin-right: ' + rightMargin);
-    margins.setAttribute('style', margins.getAttribute('style')+'; margin-top: ' + leftMargin);
-    margins.setAttribute('style', margins.getAttribute('style')+'; margin-bottom: ' + bottomMargin);
-
-    const text = document.createElement('div');
-    text.setAttribute('class', 'text');
-    text.setAttribute('contenteditable', 'true');
-    text.setAttribute('style', 'outline: 0px solid transparent; overflow: hidden; white-space: pre-wrap;');
-    const calcStatement = 'calc(' + pageHeight + ' - ' + topMargin + ' - ' + bottomMargin + ');';
-    text.setAttribute('style', text.getAttribute('style') + ';max-height:' + calcStatement + ')');
-    text.setAttribute('style', text.getAttribute('style') + ';height:' + calcStatement + ')');
-
-    addDiv(text);
-
-    margins.appendChild(text);
-    newPage.appendChild(margins);
-
-    const obj = new Page(newPage, margins, text, prevPage, nextPage);
-
-    text.addEventListener('keydown', function (ev){
         if (ev.key === 'Backspace'){
+            ev.preventDefault();
+            let cnt = window.getSelection().toString().length;
+            let collapsed = window.getSelection().isCollapsed;
+            let index = getCaretIndex(pane) + (collapsed ? -1 : 0);
+
+            let el = window.getSelection().getRangeAt(0).startContainer;
+            let end = window.getSelection().getRangeAt(0).endContainer;
+            do {
+
+            } while (el !== end)
+
+            viewDeleteText(index, cnt);
+            const {targetElement, targetSpan, checked} = getAffectedArea(index)
+            setCaret(pane, targetSpan.childNodes[0], index - checked);
+            /*thereWasDelete = true;
             if (obj.prev) {
                 if (text.innerText.length === 0) {
                     var prevText = obj.prev.text;
@@ -87,13 +86,15 @@ function addPage(prevPage, nextPage){
                 if (obj.text.innerText.length === 1 && obj.text.innerText[0].charCodeAt(0) === 10){
                     ev.preventDefault();
                 }
-            }
+            }*/
         }
         else if (ev.key === 'Enter'){
-            if (!ev.shiftKey){
-                ev.preventDefault();
+            ev.preventDefault();
 
-                let parent;
+            let index = getCaretIndex(pane);
+            if (!ev.shiftKey){
+                viewInsertText('\n', null, index);
+                /*let parent;
                 if (window.getSelection().anchorNode.tagName === 'BR' || window.getSelection().anchorNode.nodeName === '#text')
                     parent = window.getSelection().anchorNode.parentElement;
                 else
@@ -103,18 +104,13 @@ function addPage(prevPage, nextPage){
                     const ch  = window.getSelection().anchorNode.childNodes;
                     parent = ch[ch.length - 1];
                 }
-
-
-                /*let _range = document.getSelection().getRangeAt(0)
-                let range = _range.cloneRange()
-                range.selectNodeContents(parent)
-                range.setEnd(_range.endContainer, _range.endOffset)
-                let offset = range.toString().length;*/
                 let offset = getCaretPosition(parent);
 
                 const newDiv = addDiv(parent.parentElement, true);
-                if (parent.textContent.length !== offset) {
-                    const text = parent.childNodes[0].textContent;
+                if (parent.textContent.length +
+                    (parent.innerText.match(/\n/g) || []).length +
+                    (parent.querySelector('.default-break') ? -1 : 0) !== offset) {
+                    const text = parent.childNodes[0].innerText;
                     parent.removeChild(parent.childNodes[0]);
                     let lastId = parent.childNodes.length;
                     let textNode = document.createTextNode(text.slice(0, offset));
@@ -124,12 +120,11 @@ function addPage(prevPage, nextPage){
                         parent.appendChild(textNode);
                     newDiv.childNodes[0].insertAdjacentText('afterbegin', text.slice(offset));
                 }
-                setCaret(this, newDiv, 1);
+                setCaret(this, newDiv, 1);*/
             }
             else{
-                ev.preventDefault();
-
-                let parent;
+                viewInsertText('\v', null, index);
+                /*let parent;
                 if (window.getSelection().anchorNode.tagName === 'br' || window.getSelection().anchorNode.nodeName === '#text') {
                     parent = window.getSelection().anchorNode.parentElement;
                 }
@@ -142,7 +137,7 @@ function addPage(prevPage, nextPage){
                 range.setEnd(_range.endContainer, _range.endOffset)
                 let offset = range.toString().length;
 
-                const text = parent.childNodes[0].textContent;
+                const text = parent.childNodes[0].innerText;
                 parent.removeChild(parent.childNodes[0]);
                 const node0 = document.createTextNode(text.slice(0, offset));
                 const node1 = document.createElement('br');
@@ -153,42 +148,104 @@ function addPage(prevPage, nextPage){
                     parent.appendChild(node0);
                     parent.appendChild(node1);
                     parent.appendChild(node2);
-                }
+                }*/
             }
         }
-        toggleTooltip(ev, text);
     })
-    text.addEventListener('beforeinput', function (e){
-        /*if (ev.rangeParent.innerText && ev.rangeParent.innerText.length === 1 && ev.rangeParent.innerText[0].charCodeAt(0) === 10) {
-            ev.rangeParent.innerText = '';
-        }
-        const curHeight = text.getAttribute('height');*/
-        //sendChanges(ev.target, ev.target.value, null, null);
-        /*const children = e.rangeParent.childNodes;
-        const lastChild = children[children.length - 1];
-        if (lastChild && lastChild.classList.contains('default-break'))
-            e.rangeParent.removeChild(lastChild);*/
+    pane.addEventListener('beforeinput', function (e){
+        e.preventDefault();
+        let index = getCaretIndex(pane);
+        viewInsertText(e.data, null, index);
+        /*if (e.data) {
+            let parent = e.getTargetRanges()[0].startContainer;
+            if (parent.tagName !== 'span')
+                parent = parent.parentElement;
+            const br = parent.querySelector('.default-break');
+            if (br)
+                br.parentElement.removeChild(br);
+        }*/
     })
-    text.addEventListener('input', (ev) => {
-        toggleTooltip(ev, text);
-    })
+}
+
+function initPages(){
+    firstPage = addPage(null, null);
+}
+function Page(page, margins, text, prev, next){
+    this.page = page;
+    this.margins = margins;
+    this.text = text;
+    this.prev = prev;
+    this.next = next;
+    this.break = null;
+}
+
+const pageWidth = '210mm';
+const pageHeight = '297mm';
+
+const topMargin = '25.4mm';
+const bottomMargin = '25.4mm';
+const leftMargin = '25.4mm';
+const rightMargin = '25.4mm';
+
+function addPage(prevPage, nextPage){
+
+    /*const newPage = document.createElement("div");
+    newPage.setAttribute('style', 'background-color: white; margin:0; padding:0; overflow:hidden;');
+    newPage.setAttribute('style', newPage.getAttribute('style')+'; width: ' + pageWidth);
+    newPage.setAttribute('style', newPage.getAttribute('style')+'; height: ' + pageHeight);
+    newPage.setAttribute('class', 'A4');
+    newPage.setAttribute('contenteditable', 'true');
+
+    const margins = document.createElement("div");
+    margins.setAttribute('style', 'margin-left: ' + leftMargin);
+    margins.setAttribute('style', margins.getAttribute('style')+'; margin-right: ' + rightMargin);
+    margins.setAttribute('style', margins.getAttribute('style')+'; margin-top: ' + topMargin);
+    margins.setAttribute('style', margins.getAttribute('style')+'; margin-bottom: ' + bottomMargin);
+    margins.setAttribute('contenteditable', 'false');*/
+
+    const text = document.createElement('div');
+    text.setAttribute('class', 'text');
+    text.setAttribute('contenteditable', 'true');
+    text.setAttribute('style', 'outline: 0px solid transparent; overflow: hidden; word-wrap:break-word;');
+    let calcStatement = 'calc(' + pageHeight + ' - ' + topMargin + ' - ' + bottomMargin + ');';
+    text.setAttribute('style', text.getAttribute('style') + ';max-height:' + calcStatement);
+    text.setAttribute('style', text.getAttribute('style') + ';height:' + calcStatement);
+    calcStatement = 'calc(' + pageWidth + ' - ' + leftMargin + ' - ' + rightMargin + ');';
+    text.setAttribute('style', text.getAttribute('style') + ';max-width:' + calcStatement);
+    text.setAttribute('style', text.getAttribute('style') + ';width:' + calcStatement);
+
+    text.setAttribute('style', text.getAttribute('style')+'; padding-left: ' + leftMargin);
+    text.setAttribute('style', text.getAttribute('style')+'; padding-right: ' + rightMargin);
+    text.setAttribute('style', text.getAttribute('style')+'; padding-top: ' + topMargin);
+    text.setAttribute('style', text.getAttribute('style')+'; padding-bottom: ' + bottomMargin);
+    text.setAttribute('style', text.getAttribute('style')+'; background-color: white');
+
+    addDiv(text);
+
+    /*margins.appendChild(text);
+    newPage.appendChild(margins);*/
+
+    const obj = new Page(text, null, text, prevPage, nextPage);
+
+    pages.set(text, obj);
+
+    //other events
     text.addEventListener('overflow', function (ev){
         const nextPage = addPage(obj, null);
-        nextPage.text.focus();
+        setCaret(nextPage, nextPage.text.childNodes[0].childNodes[0],1);
         ev.preventDefault();
-        return false;
+        console.log(obj);
     })
-    text.addEventListener('click', (e) => {
-        getCaretIndex(text);
-        toggleTooltip(e, text);
+    text.addEventListener('paste', (ev) => {
+        console.log(ev.clipboardData.getData('text/plain'));
     })
-
     if (prevPage) {
-        prevPage.page.after(newPage);
+        prevPage.page.after(text);
+        prevPage.next = obj;
         addPageBreak(prevPage);
     }
     else {
-        pane.appendChild(newPage);
+        pane.appendChild(text);
     }
 
     return obj;
@@ -227,6 +284,7 @@ function setCaret(editable, subel, pos) {
 
 function removePage(page) {
     page.page.remove();
+    pages.delete(page);
     if (page.prev) {
         page.prev.next = page.next;
         if (!page.next)
@@ -241,6 +299,7 @@ function removePage(page) {
 function addPageBreak(page){
     const pageBreak = document.createElement("div");
     pageBreak.setAttribute('style', 'height: 30px;');
+    pageBreak.setAttribute('contenteditable', 'false')
     page.page.after(pageBreak);
     page.break = pageBreak;
 
@@ -257,18 +316,320 @@ function addDefaultBreak(anchor){
     anchor.appendChild(br);
     return br;
 }
+
+function addVerticalBreakPlaceholder(anchor){
+    const br = document.createElement('br');
+    br.setAttribute('class', 'vertical-placeholder');
+    anchor.appendChild(br);
+    return br;
+}
+
 function addDiv(anchorElement, isAfter){
     const defaultParagraph = document.createElement('div');
     const span = document.createElement('span');
     addDefaultBreak(span);
     defaultParagraph.appendChild(span);
-//    anchorElement.appendChild(defaultParagraph);
     if (isAfter)
         anchorElement.after(defaultParagraph);
     else
         anchorElement.appendChild(defaultParagraph);
     return defaultParagraph;
 }
+
+///
+/// Actual functionality
+///
+
+function getAffectedArea(pos){
+    let checked = 0;
+    let page = firstPage;
+    let childrenDivs = Array.from(page.text.childNodes.values());
+    let targetElement = pos === 0 ? childrenDivs.shift() : null;
+
+    //finding target div
+    let lastAdded = 0;
+    while (page && checked < pos){
+        targetElement = childrenDivs.shift();
+        lastAdded = targetElement.textContent.length +
+            (targetElement.innerText.match(/\n/g) || []).length +
+            (targetElement.querySelector('.default-break') ? -1 : 0);
+        checked += lastAdded;
+        if (childrenDivs.length === 0 && page.next){
+            page = page.next;
+            childrenDivs = Array.from(page.text.childNodes.values());
+            checked++;
+        }
+    }
+    checked -= lastAdded;
+
+    //finding target span
+    let childrenSpans = Array.from(targetElement.childNodes);
+    let targetSpan = childrenSpans.shift();
+    while (childrenSpans.length > 0 && checked < pos) {
+        if (targetSpan.tagName === 'BR')
+            lastAdded = 1;
+        else
+            lastAdded = targetElement.textContent.length +
+                (targetElement.innerText.match(/\n/g) || []).length +
+                (targetElement.querySelector('.default-break') ? -1 : 0);
+        checked += lastAdded;
+        targetSpan = childrenSpans.shift();
+    }
+
+    return {targetElement, targetSpan, checked};
+}
+
+function viewInsertText(text, style, pos){
+    let {targetElement, targetSpan, checked} = getAffectedArea(pos);
+
+    let start = targetElement;
+    let lastDiv = targetElement;
+    let lastSpan = targetSpan;
+
+    let defaultBreak = lastSpan.querySelector('.default-break');
+
+    if (defaultBreak)
+        lastSpan.removeChild(defaultBreak);
+
+    let srcText = targetSpan.textContent;
+    let splitPos = pos - checked;
+    let split0 = checked === pos ? null : srcText.slice(0, splitPos);
+    let split1 = checked + targetSpan.innerText.length === pos ? null : srcText.slice(splitPos);
+    if (targetSpan.childNodes.length > 0)
+        //Array.from(targetSpan.childNodes).reverse().forEach(val => val.remove());
+        targetSpan.innerHtml = '';
+    if (split0) targetSpan.appendChild(document.createTextNode(split0));
+    let nodes = textToNodes(text, targetSpan.tagName === 'br', split1);
+    let val = nodes.shift();
+    while (val){
+        if (val.tagName === 'DIV'){
+            lastDiv.after(val);
+            lastDiv = val;
+            lastSpan = val.lastChild;
+        }
+        else if (val.nodeName === '#text'){
+            lastSpan.appendChild(val);
+        }
+        else {
+            lastSpan.after(val);
+            lastSpan = val;
+        }
+        val = nodes.shift();
+    }
+
+    let el = lastDiv;
+    do {
+        let subEl = el.childNodes[el.childNodes.length - 1];
+        while (subEl) {
+            if (subEl.tagName === 'SPAN') {
+                if (subEl.innerText.length === 0 &&
+                    subEl.textContent.length === 0) {
+                    if (subEl.nextSibling === null)
+                        addDefaultBreak(subEl);
+                    else
+                        addVerticalBreakPlaceholder(subEl);
+
+                    subEl = subEl.previousSibling;
+                }
+                else if (subEl.querySelector('.vertical-placeholder') && subEl.textContent.length > 0){
+                    subEl.removeChild(subEl.querySelector('.vertical-placeholder'));
+                    if (subEl.previousSibling) subEl.before(document.createElement('br'));
+                    subEl = subEl.previousSibling;
+                }
+                else if (subEl.childNodes[0].className === 'default-break'){
+                    let tmp = document.createElement('br');
+                    tmp.setAttribute('class', 'vertical-placeholder');
+                    subEl.childNodes[0].before(tmp);
+                    if (subEl.nextSibling)
+                        subEl.removeChild(subEl.childNodes[1]);
+                    subEl = subEl.previousSibling;
+                }
+                else {
+                    subEl = subEl.previousSibling;
+                }
+            }
+            else if (subEl.tagName === 'BR'){
+                if (subEl.nextSibling === null){
+                    let tmp = document.createElement('span');
+                    if (subEl.previousSibling.tagName === 'SPAN' &&
+                        subEl.previousSibling.textContent.length > 0)
+                        addVerticalBreakPlaceholder(tmp);
+                    addDefaultBreak(tmp);
+                    subEl.before(tmp);
+                    subEl.remove();
+                    subEl = tmp.previousSibling;
+
+                }
+                else if (subEl.previousSibling.tagName === 'BR'){
+                    let tmp = document.createElement('span');
+                    addVerticalBreakPlaceholder(tmp);
+                    subEl.before(tmp);
+                    subEl.remove();
+                    subEl = tmp.previousSibling;
+                }
+            }
+            else {
+                subEl = subEl.previousSibling;
+            }
+        }
+        el = el.previousSibling;
+    } while (el !== start.previousSibling)
+
+    return lastSpan;
+}
+
+
+function viewDeleteText(pos, size) {
+    let {targetElement, targetSpan, checked} = getAffectedArea(pos);
+    let toDelete = size;
+
+    let next;
+    if (targetSpan.nextSibling)
+        next = targetSpan.nextSibling;
+    else
+        next = targetElement.nextSibling;
+
+    if (pos - checked > 0){
+        let str = targetSpan.textContent;
+        let split0 = str.slice(0, pos - checked);
+        let split1 = str.slice(pos - checked);
+        let split2 = '';
+        targetSpan.textContent = split0;
+        if (toDelete < split1.length){
+            split2 = split1.slice(toDelete);
+            toDelete = 0;
+        }
+        else
+            toDelete -= split1.length;
+        targetSpan.textContent = targetSpan.textContent + split2;
+    }
+    else
+        next = targetSpan;
+
+    let start = targetElement;
+    let el = start;
+    let end = null;
+
+    while (toDelete > 0){
+        let cur = next;
+        if (cur.tagName === 'DIV'){
+            next = next.childNodes[0];
+            end = next;
+        }
+        else if (cur.tagName === 'SPAN'){
+            if (cur.nextSibling)
+                next = next.nextSibling;
+            else
+                next = next.parentElement.nextSibling;
+
+            if (toDelete < cur.textContent){
+                cur.innerHtml = cur.textContent.splice(toDelete);
+                toDelete = 0;
+            }
+            else {
+                toDelete -= cur.textContent.length;
+                cur.remove();
+            }
+        }
+        else if (cur.tagName === 'BR'){
+            if (cur.nextSibling)
+                next = cur.nextSibling;
+            else
+                next = cur.parentElement.nextSibling;
+
+            toDelete--;
+            cur.remove();
+        }
+    }
+
+    do {
+        if (el.innerText.length === 0 && el.textContent.length === 0) {
+            let tmp = el.nextSibling;
+            el.remove();
+            el = tmp;
+        }
+        else
+            el = el.nextSibling;
+    } while (el !== end)
+
+    //TODO: проверять страницы с затронутым контентом
+    if (firstPage.text.innerText.length === 0 && firstPage.text.textContent.length === 0)
+        addDiv(firstPage.text);
+}
+
+function textToNodes(text, afterBreak, attachAtEnd){
+    let res = [];
+    let split = text.split(/(\n|\v)/g);
+    let lastDiv = null;
+    let needSpan =  afterBreak || false;
+
+    split.forEach(val => {
+        if (val === '\n') {
+            lastDiv = document.createElement('div');
+            needSpan = true;
+            res.push(lastDiv);
+        }
+        else if (val === '\v') {
+            let el = document.createElement('br');
+            if (lastDiv)
+                lastDiv.appendChild(el);
+            else
+                res.push(el);
+            needSpan = true;
+        }
+        else{
+            let el = document.createTextNode(val);
+            if (lastDiv) {
+                if (needSpan){
+                    const span = document.createElement('span');
+                    span.appendChild(el);
+                    lastDiv.appendChild(span);
+                    needSpan = false;
+                }
+
+            }
+            else
+                res.push(el);
+        }
+    })
+
+    if (attachAtEnd){
+        let el;
+        if (needSpan){
+            el = document.createElement('span');
+            el.appendChild(document.createTextNode(attachAtEnd));
+        }
+        else {
+            el = document.createTextNode(attachAtEnd);
+        }
+
+        if (lastDiv)
+            lastDiv.appendChild(el);
+        else
+            res.push(el);
+    }
+
+    return res;
+}
+
+/*selection = window.getSelection();
+range = selection.getRangeAt(0).cloneRange();
+start = range.startContainer;
+end = range.endContainer;
+
+el = start;
+while (el && el.className !== 'text'){
+  el = el.parentElement;
+}
+console.log(el);
+
+el = end;
+while (el && el.className !== 'text'){
+  el = el.parentElement;
+}
+console.log(el);
+
+firstPage.text.innerText.length*/
 
 //cursor position in text + visual
 function getCaretIndex(element) {
@@ -279,13 +640,67 @@ function getCaretIndex(element) {
         if (selection.rangeCount !== 0) {
             const range = window.getSelection().getRangeAt(0);
             const preCaretRange = range.cloneRange();
-            preCaretRange.selectNodeContents(element);
-            preCaretRange.setEnd(range.endContainer, range.endOffset);
-            position = preCaretRange.toString().length;
+            let start = preCaretRange.startContainer;
+            let end = preCaretRange.endContainer;
+
+            //first
+            let el1 = start;
+            while (el1 && el1.className !== 'text'){
+                el1 = el1.parentElement;
+            }
+            let ch0 = start.childNodes[0];
+            let ch1 = start.childNodes[1];
+            let before = preCaretRange.startOffset;
+            if (before > 0 &&
+                ((ch0 && ch0.className && ch0.className.match(/(vertical-placeholder)|(default-break)/)) ||
+                (ch1 && ch1.className && ch1.className.match(/(vertical-placeholder)|(default-break)/)))
+            )
+                before--;
+            //offset in pages
+            let el = pages.get(el1).prev;
+            while (el) {
+                before += el.text.innerText.length;
+                let children = el.text.childNodes;
+                children.forEach(value => {if (value.innerText==='\n') before--;})
+                if (el.querySelector('.default-break'))
+                    before--;
+                before++;
+                el = el.prev;
+            }
+            //offset in divs
+            let sibling = start.parentElement.parentElement;
+            if (sibling.className === 'text')
+                sibling = start.parentElement;
+            sibling = sibling.previousSibling;
+            while (sibling != null) {
+                if (sibling.innerText !== '\n')
+                    before += sibling.innerText.length + 1;
+                else
+                    before += 1;
+                sibling = sibling.previousSibling;
+            }
+            //offset inside div
+            let localSibling = start.previousSibling;
+            while (localSibling != null){
+                if (localSibling.tagName === 'BR')
+                    before += 1;
+                else
+                    before += localSibling.textContent.length + 1;
+                localSibling = localSibling.previousSibling;
+            }
+
+            //account for filler span && vertical placeholder
+            /*if (before > 0 && start.nodeName !== '#text') {
+                if (start.querySelector('.default-break') ||
+                    start.querySelector('.vertical-placeholder'))
+                    before--;
+            }*/
+
+            position = before;
         }
     }
-    console.log(position);
-    return position;
+    console.log(position - caretAdjustment);
+    return position - caretAdjustment;
 }
 
 function getCaretCoordinates(element) {
@@ -305,11 +720,15 @@ function getCaretCoordinates(element) {
             if (rect){
                 const offset = cumulativeOffset(element);
                 const drip = element.getBoundingClientRect();
-                x = rect.left - drip.left + element.offsetLeft;
-                y = rect.top - drip.top + element.offsetTop;
+                x = rect.left - drip.left/* + element.offsetLeft*/;
+                y = rect.top - drip.top/* + element.offsetTop*/;
             }
-            else{
+            else if (range.startOffset === 0){
                 x = range.startContainer.offsetLeft;
+                y = range.startContainer.offsetTop;
+            }
+            else {
+                x = range.startContainer.offsetLeft + range.startContainer.offsetWidth;
                 y = range.startContainer.offsetTop;
             }
         }
@@ -330,7 +749,11 @@ function cumulativeOffset(element) {
     return {top, left};
 }
 
+
+
+///
 //showing username next to cursor
+///
 function toggleTooltip(event, contenteditable) {
     const tooltip = document.getElementById("tooltip");
     if (contenteditable.contains(event.target)) {
@@ -340,13 +763,18 @@ function toggleTooltip(event, contenteditable) {
             "style",
             `display: inline-block; left: ${x}px; top: ${y - 20}px`
         );
+        tooltip.setAttribute('style', tooltip.getAttribute('style') + ';background-color: ' + colours.get('MollyZen'))
     } else {
         tooltip.setAttribute("aria-hidden", "true");
         tooltip.setAttribute("style", "display: none;");
     }
 }
 
+
+
+///
 //colours for users/cursors
+///
 function getHashOfString (str){
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

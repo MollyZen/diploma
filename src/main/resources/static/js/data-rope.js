@@ -1,5 +1,4 @@
 var ropeRoot =  new TreeNode(null, null, null,null, null);
-const maxSpanSize = 64;
 
 const StyleCodes = {
     'BOLD' : 0,
@@ -16,16 +15,16 @@ const StyleCodes = {
 }
 function dataRopeTest() {
 
-    insertText('govno ', null, 0);
-    insertText('zhopa ', null, 0);
-    insertText('suka ', null, 0);
+    ropeInsertText('govno ', null, 0);
+    ropeInsertText('zhopa ', null, 0);
+    ropeInsertText('suka ', null, 0);
 
-    insertText('blya', null, 17);
+    ropeInsertText('blya', null, 17);
 
-    insertText('after suka ', null, 5);
-    insertText('aaa ', null, 16);
+    ropeInsertText('after suka ', null, 5);
+    ropeInsertText('aaa ', null, 16);
 
-    insertText('sss', null, 1);
+    ropeInsertText('sss', null, 1);
 
     updateAccordingToModel();
 }
@@ -117,7 +116,7 @@ function TreeNode(parent, left, right, text, style) {
     }
 }
 
-function insertText(text, style, pos) {
+function ropeInsertText(text, style, pos) {
     let newNode = new TreeNode(null, null, null, text, style);
 
     if (pos === 0 || pos === ropeRoot.length){
@@ -180,7 +179,7 @@ function insertText(text, style, pos) {
     return affectedNode;
 }
 
-function deleteText(pos, length) {
+function ropeDeleteText(pos, length) {
     let start = getAffectedNode(ropeRoot, pos)
     let affected = start[0];
     let remainingPos = pos - affected[1];
