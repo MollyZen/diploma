@@ -38,10 +38,10 @@ function testChangesDisplay() {
 
     insertText('blya', null, 17);
 
-    /*controllerInsert('after suka ', null, 5);
-    controllerInsert('aaa ', null, 16);
+    insertText('after suka ', null, 5);
+    insertText('aaa ', null, 16);
 
-    controllerInsert('sss', null, 1);*/
+    insertText('sss', null, 1);
 
 }
 
@@ -265,8 +265,6 @@ function getViewCaretIndex(){
             before += preCaretRange.startOffset;
         else
             before+= startNode.textContent.length;
-        /*if (!isText)
-            before += startNode.textContent.length;*/
 
         return before;
     }

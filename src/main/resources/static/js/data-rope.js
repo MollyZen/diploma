@@ -409,13 +409,16 @@ function splitString(str, index) {
 }
 
 function getOffset(node){
-    let curNode = node;
-    while(curNode.parent && (curNode.parent.getLeft() == null || !curNode.isLeft()))
+    let curNode = node.parent;
+    let isLeft = node.isLeft();
+    while(curNode && (isLeft || curNode.getLeft() == null)){
+        if (curNode.parent) isLeft = curNode.isLeft();
         curNode = curNode.parent;
+    }
 
     let res = 0;
-    if (curNode !== node && curNode.getLeft() !== node)
-        res = curNode.getLeft().getLength();
+    if (curNode && curNode !== node && curNode.getLeft() !== node)
+        res = ropeRoot.getLength() - curNode.getRight().getLength();
 
     return res;
 }
