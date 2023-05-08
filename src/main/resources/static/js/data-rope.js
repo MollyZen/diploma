@@ -25,8 +25,6 @@ function dataRopeTest() {
     ropeInsertText('aaa ', null, 16);
 
     ropeInsertText('sss', null, 1);
-
-    updateAccordingToModel();
 }
 
 function displayTree() {
@@ -106,26 +104,62 @@ function TreeNode(parent, left, right, text, style) {
     }
     this.nextTextNode = () => {
         if (this.text) return nextTextNode(this);
-        else {
-            if (this.getLeft())
-                this.getLeft().nextTextNode()
-            else if (this.getRight())
-                this.getRight().nextTextNode();
-        }
-        return null;
+        else return leftmostChild(this);
     }
+    this.prevTextNode = () => {
+        if (this.text) return prevTextNode(this);
+        else return leftmostChild(this);
+    }
+    this.getOffset = () => {
+        return getOffset(this);
+    }
+}
+
+function leftmostChild(node){
+    let el = node;
+    while (el.text == null){
+        if (el.getLeft())
+            el = el.getLeft();
+        else
+            el = el.getRight();
+    }
+    return el;
 }
 
 function ropeInsertText(text, style, pos) {
     let newNode = new TreeNode(null, null, null, text, style);
 
+    let added = [];
+    let removed = [];
     if (pos === 0 || pos === ropeRoot.length){
-        if (ropeRoot.getLeft() || ropeRoot.getRight() || ropeRoot.getText())
-            ropeRoot = pos === 0 ? concat(newNode, ropeRoot) : concat(ropeRoot, newNode);
+        if (ropeRoot.getLeft() || ropeRoot.getRight() || ropeRoot.getText()) {
+            if (pos === 0){
+                if (ropeRoot.getLeft() == null)
+                    ropeRoot.setLeft(newNode);
+                else if (ropeRoot.getRight() == null){
+                    ropeRoot.setRight(ropeRoot.getLeft());
+                    ropeRoot.setLeft(newNode);
+                }
+                else
+                    ropeRoot = concat(newNode, ropeRoot);
+            }
+            else {
+                if (pos === 0) {
+                    if (ropeRoot.getRight() == null)
+                        ropeRoot.setRight(newNode);
+                    else if (ropeRoot.getLeft() == null) {
+                        ropeRoot.setLeft(ropeRoot.getRight());
+                        ropeRoot.setRight(newNode);
+                    } else
+                        ropeRoot = concat(ropeRoot, newNode);
+                }
+            }
+            //ropeRoot = pos === 0 ? concat(newNode, ropeRoot) : concat(ropeRoot, newNode);
+        }
         else
-            ropeRoot = newNode;
+            ropeRoot.setRight(newNode)
 
-        return ropeRoot;
+        return {added : [newNode], removed};
     }
 
     let toChange = getAffectedNode(ropeRoot, pos);
@@ -149,6 +183,7 @@ function ropeInsertText(text, style, pos) {
                 affectedNode.parent.setRight(concat(newNode, affectedNode));
             }
         }
+        added.push(newNode);
     } else if (remainingPos === affectedNode.length) {
         if (isLeft) {
             if (affectedNode.parent.getRight() == null) {
@@ -164,9 +199,11 @@ function ropeInsertText(text, style, pos) {
                 affectedNode.parent.setRight(concat(affectedNode, newNode));
             }
         }
+        added.push(newNode);
     } else {
         let [first, second] = splitString(affectedNode.text, remainingPos);
         let node1 = new TreeNode(null, null, null, first, affectedNode.style);
+        added.push(node1);
         node1 = concat(node1, newNode);
         let node2 = new TreeNode(null, null, null, second, affectedNode.style);
         node1 = concat(node1, node2);
@@ -174,9 +211,12 @@ function ropeInsertText(text, style, pos) {
             affectedNode.parent.setLeft(node1);
         else
             affectedNode.parent.setRight(node1);
+        added.push(newNode);
+        added.push(node2);
+        removed.push(affectedNode);
     }
 
-    return affectedNode;
+    return {added, removed};
 }
 
 function ropeDeleteText(pos, length) {
@@ -272,7 +312,7 @@ function getAffectedNode(start, pos) {
         else if (node.getLeft() && (posChecked + node.getLeft().getLength()) >= pos) {
             node = node.getLeft();
         }
-        else if (node.getRight() && (posChecked + node.getRight().getLength()) >= pos) {
+        else if (node.getRight() && (posChecked + node.getRight().getLength() + (node.getLeft() ? node.getLeft().getLength() : 0)) >= pos) {
             posChecked += node.getLeft().getLength();
             node = node.getRight();
         }
@@ -297,12 +337,41 @@ function nextTextNode(start){
 
     if (parent) {
         node = parent.getRight();
-        while (node.text == null || node.getLeft()){
-            node = node.getLeft();
-        }
+        while (node && node.text == null)
+            if (node.getLeft())
+                node = node.getLeft();
+            else
+                node = node.getRight();
     }
     else
         node = null
+
+    return node;
+}
+
+function prevTextNode(start){
+    let node = start;
+    let parent = start.parent;
+
+    while (parent){
+        if (node.isLeft() || parent.getLeft() == null){
+            node = parent;
+            parent = node.parent;
+        }
+        else
+            break;
+    }
+
+    if (parent) {
+        node = parent.getLeft();
+        while (node && node.text == null)
+            if (node.getRight())
+                node = node.getRight();
+            else
+                node = node.getLeft();
+    }
+    else
+        node = null;
 
     return node;
 }
@@ -337,4 +406,16 @@ function getFullString(start){
 
 function splitString(str, index) {
     return [str.slice(0, index), str.slice(index)];
+}
+
+function getOffset(node){
+    let curNode = node;
+    while(curNode.parent && (curNode.parent.getLeft() == null || !curNode.isLeft()))
+        curNode = curNode.parent;
+
+    let res = 0;
+    if (curNode !== node && curNode.getLeft() !== node)
+        res = curNode.getLeft().getLength();
+
+    return res;
 }

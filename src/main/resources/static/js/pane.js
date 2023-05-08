@@ -3,43 +3,38 @@ var firstPage;
 const caretAdjustment = 0;
 
 let pages = new Map();
-function updateAccordingToModel(){
-    var node = ropeRoot;
-    while (node){
-        node = nextTextNode(node);
-    }
-}
 
 let thereWasDelete = false;
 
 function setPane(newPane) {
     pane = newPane;
-    pane.addEventListener('input', (ev) => {
-        const range = window.getSelection().getRangeAt(0);
-        const preCaretRange = range.cloneRange();
-        let parent = preCaretRange.startContainer;
-        if (parent.nodeName === '#text')
-            parent = parent.parentElement;
-        if (parent.innerText.length === 0 && parent.innerText.match(/\n+/g)) {
-            if (thereWasDelete) {
-                const tmp = parent.childNodes;
-                tmp[tmp.length -1].setAttribute('class', 'default-break');
-                thereWasDelete = false;
+    /*    pane.addEventListener('input', (ev) => {
+            const range = window.getSelection().getRangeAt(0);
+            const preCaretRange = range.cloneRange();
+            let parent = preCaretRange.startContainer;
+            if (parent.nodeName === '#text')
+                parent = parent.parentElement;
+            if (parent.innerText.length === 0 && parent.innerText.match(/\n+/g)) {
+                if (thereWasDelete) {
+                    const tmp = parent.childNodes;
+                    tmp[tmp.length -1].setAttribute('class', 'default-break');
+                    thereWasDelete = false;
+                }
+                else
+                    addDefaultBreak(parent);
             }
-            else
-                addDefaultBreak(parent);
-        }
 
-        getCaretIndex(pane);
-        toggleTooltip(ev, pane);
-    })
+            getCaretIndex(pane);
+            toggleTooltip(ev, pane);
+        })*/
     //mouse
     pane.addEventListener('click', (e) => {
-        getCaretIndex(pane);
-        toggleTooltip(e, pane);
+        //getCaretIndex(pane);
+        console.log(getViewCaretIndex());
+        //toggleTooltip(e, pane);
     })
     //buttons
-    pane.addEventListener('keydown', function (ev){
+    /*pane.addEventListener('keydown', function (ev){
         let text = ev.target;
         while (text && text.className !== 'text'){
             text = text.parentElement;
@@ -61,7 +56,7 @@ function setPane(newPane) {
             viewDeleteText(index, cnt);
             const {targetElement, targetSpan, checked} = getAffectedArea(index)
             setCaret(pane, targetSpan.childNodes[0], index - checked);
-            /*thereWasDelete = true;
+            /!*thereWasDelete = true;
             if (obj.prev) {
                 if (text.innerText.length === 0) {
                     var prevText = obj.prev.text;
@@ -86,7 +81,7 @@ function setPane(newPane) {
                 if (obj.text.innerText.length === 1 && obj.text.innerText[0].charCodeAt(0) === 10){
                     ev.preventDefault();
                 }
-            }*/
+            }*!/
         }
         else if (ev.key === 'Enter'){
             ev.preventDefault();
@@ -94,7 +89,7 @@ function setPane(newPane) {
             let index = getCaretIndex(pane);
             if (!ev.shiftKey){
                 viewInsertText('\n', null, index);
-                /*let parent;
+                /!*let parent;
                 if (window.getSelection().anchorNode.tagName === 'BR' || window.getSelection().anchorNode.nodeName === '#text')
                     parent = window.getSelection().anchorNode.parentElement;
                 else
@@ -120,11 +115,11 @@ function setPane(newPane) {
                         parent.appendChild(textNode);
                     newDiv.childNodes[0].insertAdjacentText('afterbegin', text.slice(offset));
                 }
-                setCaret(this, newDiv, 1);*/
+                setCaret(this, newDiv, 1);*!/
             }
             else{
                 viewInsertText('\v', null, index);
-                /*let parent;
+                /!*let parent;
                 if (window.getSelection().anchorNode.tagName === 'br' || window.getSelection().anchorNode.nodeName === '#text') {
                     parent = window.getSelection().anchorNode.parentElement;
                 }
@@ -148,7 +143,7 @@ function setPane(newPane) {
                     parent.appendChild(node0);
                     parent.appendChild(node1);
                     parent.appendChild(node2);
-                }*/
+                }*!/
             }
         }
     })
@@ -156,27 +151,15 @@ function setPane(newPane) {
         e.preventDefault();
         let index = getCaretIndex(pane);
         viewInsertText(e.data, null, index);
-        /*if (e.data) {
+        /!*if (e.data) {
             let parent = e.getTargetRanges()[0].startContainer;
             if (parent.tagName !== 'span')
                 parent = parent.parentElement;
             const br = parent.querySelector('.default-break');
             if (br)
                 br.parentElement.removeChild(br);
-        }*/
-    })
-}
-
-function initPages(){
-    firstPage = addPage(null, null);
-}
-function Page(page, margins, text, prev, next){
-    this.page = page;
-    this.margins = margins;
-    this.text = text;
-    this.prev = prev;
-    this.next = next;
-    this.break = null;
+        }*!/
+    })*/
 }
 
 const pageWidth = '210mm';
@@ -186,6 +169,22 @@ const topMargin = '25.4mm';
 const bottomMargin = '25.4mm';
 const leftMargin = '25.4mm';
 const rightMargin = '25.4mm';
+
+function initPages(){
+    //firstPage = addPage(null, null);
+    pane.setAttribute('style', pane.getAttribute('style') + '; width: ' + pageWidth);
+    pane.setAttribute('style', pane.getAttribute('style') + '; height: ' + pageHeight);
+    pane.setAttribute('style', pane.getAttribute('style') + '; background-color: white');
+    pane.setAttribute('style', pane.getAttribute('style') + '; padding: ' + topMargin);
+}
+function Page(page, margins, text, prev, next){
+    this.page = page;
+    this.margins = margins;
+    this.text = text;
+    this.prev = prev;
+    this.next = next;
+    this.break = null;
+}
 
 function addPage(prevPage, nextPage){
 
@@ -424,7 +423,7 @@ function viewInsertText(text, style, pos){
             if (subEl.tagName === 'SPAN') {
                 if (subEl.innerText.length === 0 &&
                     subEl.textContent.length === 0) {
-                    if (subEl.nextSibling === null)
+                    if (subEl.nextSibling == null)
                         addDefaultBreak(subEl);
                     else
                         addVerticalBreakPlaceholder(subEl);
@@ -449,7 +448,7 @@ function viewInsertText(text, style, pos){
                 }
             }
             else if (subEl.tagName === 'BR'){
-                if (subEl.nextSibling === null){
+                if (subEl.nextSibling == null){
                     let tmp = document.createElement('span');
                     if (subEl.previousSibling.tagName === 'SPAN' &&
                         subEl.previousSibling.textContent.length > 0)
@@ -477,7 +476,6 @@ function viewInsertText(text, style, pos){
 
     return lastSpan;
 }
-
 
 function viewDeleteText(pos, size) {
     let {targetElement, targetSpan, checked} = getAffectedArea(pos);
@@ -653,7 +651,7 @@ function getCaretIndex(element) {
             let before = preCaretRange.startOffset;
             if (before > 0 &&
                 ((ch0 && ch0.className && ch0.className.match(/(vertical-placeholder)|(default-break)/)) ||
-                (ch1 && ch1.className && ch1.className.match(/(vertical-placeholder)|(default-break)/)))
+                    (ch1 && ch1.className && ch1.className.match(/(vertical-placeholder)|(default-break)/)))
             )
                 before--;
             //offset in pages
@@ -749,7 +747,80 @@ function cumulativeOffset(element) {
     return {top, left};
 }
 
+///
+///NEW STUFF
+///
 
+function appendToTextNode(el, pos, text){
+    const srcText = el.textContent;
+    const newText = (srcText.slice(0, pos) || '') + text + (srcText.slice(pos) || '');
+    el.childNodes.forEach(val => {
+        if (val.nodeName === '#text')
+            val.remove();
+    })
+    if (el.childNodes[0])
+        el.childNodes[0].before(document.createTextNode(newText));
+    else
+        el.appendChild(document.createTextNode(newText));
+    return el;
+}
+
+function removeFromTextNode(el, pos, size){
+    const srcText = el.textContent;
+    const newText = (srcText.slice(0, pos) || '') + (srcText.slice(pos + size) || '');
+    el.childNodes.forEach(val => {
+        if (val.nodeName === '#text')
+            val.remove();
+    })
+    if (el.childNodes[0])
+        el.childNodes[0].before(document.createTextNode(newText));
+    else
+        el.appendChild(document.createTextNode(newText));
+    return el;
+}
+
+function createNewTextNode(el, text, style, isBefore, isChild){
+    const tmp = document.createElement('span');
+    //TODO: styling
+    tmp.appendChild(document.createTextNode(text));
+    if (isChild){
+        el.appendChild(tmp);
+    }
+    else {
+        if (isBefore)
+            el.before(tmp);
+        else
+            el.after(tmp);
+    }
+    return tmp;
+}
+
+function addVerticalBreak(el, isBefore){
+    const tmp = document.createElement('br');
+    if (isBefore)
+        el.before(tmp);
+    else
+        el.after(tmp);
+    return tmp;
+}
+function addNewLine(el, isBefore){
+
+}
+function addParagraph(el, text, style, isBefore){
+    const tmp = document.createElement('div');
+    const span = document.createElement('span');
+    if (text) span.appendChild(document.createTextNode(text));
+    const br = document.createElement('br');
+    br.setAttribute('class', 'newline');
+    span.appendChild(br);
+    tmp.appendChild(span);
+    //TODO: styling
+    if (isBefore)
+        el.before(tmp);
+    else
+        el.after(tmp);
+    return tmp;
+}
 
 ///
 //showing username next to cursor
@@ -769,8 +840,6 @@ function toggleTooltip(event, contenteditable) {
         tooltip.setAttribute("style", "display: none;");
     }
 }
-
-
 
 ///
 //colours for users/cursors

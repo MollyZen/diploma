@@ -1,3 +1,10 @@
+let bold = false;
+let cursive = false;
+let underscore = false;
+let fontSize = 11;
+let font = 'Arial';
+
+
 function toolbarSetup() {
     const userAction = async () => {
         const response = await fetch('http://localhost:8082/rest/generate-id');
@@ -27,13 +34,13 @@ function toolbarSetup() {
         const val = Number($(this).children("div .option").text().replace('%', '').trim()) / 100.;
         const pane = $("#pane");
 
-        const oldPaneHeight = pane.height();
-        const oldPaneWidth = pane.width();
+        const oldPaneHeight = pane.outerHeight();
+        const oldPaneWidth = pane.outerWidth();
 
         pane.css('scale', val.toString());
 
-        const newPaneHeight = pane.height();
-        const newPaneWidth = pane.width();
+        const newPaneHeight = (pane.outerHeight()) * val;
+        const newPaneWidth = (pane.outerWidth()) * val;
 
         const deltaHeight = newPaneHeight - oldPaneHeight;
         const deltaWidth = newPaneWidth - oldPaneWidth;
@@ -41,8 +48,11 @@ function toolbarSetup() {
         const tmp = $("#tmp");
         const oldTmpHeight = tmp.height();
         const oldTmpWidth = tmp.width();
-        tmp.height(oldTmpHeight + deltaHeight);
-        tmp.width(oldTmpWidth + deltaWidth);
+        //tmp.height(oldTmpHeight + deltaHeight);
+        //tmp.width(oldTmpWidth + deltaWidth);
+        tmp.width(newPaneWidth);
+        tmp.height(newPaneHeight);
+        //TODO: переписать без jquery и убрать лишнее
 
         var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
         var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
@@ -132,8 +142,4 @@ function createOverflowButton(id, elToMove){
     el.setAttribute('id', id);
     el.setAttribute('class', 'bi-three-dots-vertical');
     elToMove.remove();
-}
-
-function addUser(name, avatar){
-
 }
