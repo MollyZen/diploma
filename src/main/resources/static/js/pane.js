@@ -1,6 +1,5 @@
 var pane;
 var firstPage;
-const caretAdjustment = 0;
 
 let pages = new Map();
 
@@ -33,133 +32,26 @@ function setPane(newPane) {
         console.log(getViewCaretIndex());
         //toggleTooltip(e, pane);
     })
-    //buttons
-    /*pane.addEventListener('keydown', function (ev){
-        let text = ev.target;
-        while (text && text.className !== 'text'){
-            text = text.parentElement;
-        }
-        let obj = pages.get(text);
-
+    pane.addEventListener('keydown', function (ev){
         if (ev.key === 'Backspace'){
             ev.preventDefault();
-            let cnt = window.getSelection().toString().length;
-            let collapsed = window.getSelection().isCollapsed;
-            let index = getCaretIndex(pane) + (collapsed ? -1 : 0);
-
-            let el = window.getSelection().getRangeAt(0).startContainer;
-            let end = window.getSelection().getRangeAt(0).endContainer;
-            do {
-
-            } while (el !== end)
-
-            viewDeleteText(index, cnt);
-            const {targetElement, targetSpan, checked} = getAffectedArea(index)
-            setCaret(pane, targetSpan.childNodes[0], index - checked);
-            /!*thereWasDelete = true;
-            if (obj.prev) {
-                if (text.innerText.length === 0) {
-                    var prevText = obj.prev.text;
-                    prevText.focus();
-
-                    var selectedText = window.getSelection();
-                    var selectedRange = document.createRange();
-                    selectedRange.setStart(prevText, prevText.innerText);
-                    selectedRange.collapse(true);
-
-                    selectedText.removeAllRanges();
-                    selectedText.addRange(selectedRange);
-                    obj.prev.text.focus();
-                    try {
-                        return false;
-                    } finally {
-                        removePage(obj);
-                    }
-                }
-            }
-            else {
-                if (obj.text.innerText.length === 1 && obj.text.innerText[0].charCodeAt(0) === 10){
-                    ev.preventDefault();
-                }
-            }*!/
+            //TODO: сделать проверку на то, сколько элементов выбрано при удалении
+            deleteText(getViewCaretIndex() - 1, 1);
         }
         else if (ev.key === 'Enter'){
             ev.preventDefault();
-
-            let index = getCaretIndex(pane);
-            if (!ev.shiftKey){
-                viewInsertText('\n', null, index);
-                /!*let parent;
-                if (window.getSelection().anchorNode.tagName === 'BR' || window.getSelection().anchorNode.nodeName === '#text')
-                    parent = window.getSelection().anchorNode.parentElement;
-                else
-                    parent =  window.getSelection().anchorNode;
-
-                if (parent.tagName === 'DIV'){
-                    const ch  = window.getSelection().anchorNode.childNodes;
-                    parent = ch[ch.length - 1];
-                }
-                let offset = getCaretPosition(parent);
-
-                const newDiv = addDiv(parent.parentElement, true);
-                if (parent.textContent.length +
-                    (parent.innerText.match(/\n/g) || []).length +
-                    (parent.querySelector('.default-break') ? -1 : 0) !== offset) {
-                    const text = parent.childNodes[0].innerText;
-                    parent.removeChild(parent.childNodes[0]);
-                    let lastId = parent.childNodes.length;
-                    let textNode = document.createTextNode(text.slice(0, offset));
-                    if (parent.childNodes[0])
-                        parent.childNodes[0].before(textNode);
-                    else
-                        parent.appendChild(textNode);
-                    newDiv.childNodes[0].insertAdjacentText('afterbegin', text.slice(offset));
-                }
-                setCaret(this, newDiv, 1);*!/
+            if (!ev.shiftKey) {
+                handleTextInput('\n', null, getViewCaretIndex());
             }
             else{
-                viewInsertText('\v', null, index);
-                /!*let parent;
-                if (window.getSelection().anchorNode.tagName === 'br' || window.getSelection().anchorNode.nodeName === '#text') {
-                    parent = window.getSelection().anchorNode.parentElement;
-                }
-                else
-                    parent =  window.getSelection().anchorNode;
-
-                let _range = document.getSelection().getRangeAt(0)
-                let range = _range.cloneRange()
-                range.selectNodeContents(parent)
-                range.setEnd(_range.endContainer, _range.endOffset)
-                let offset = range.toString().length;
-
-                const text = parent.childNodes[0].innerText;
-                parent.removeChild(parent.childNodes[0]);
-                const node0 = document.createTextNode(text.slice(0, offset));
-                const node1 = document.createElement('br');
-                const node2 = document.createTextNode(text.slice(offset));
-                if (parent.childNodes[0])
-                    parent.childNodes[0].before(node0, node1, node2);
-                else {
-                    parent.appendChild(node0);
-                    parent.appendChild(node1);
-                    parent.appendChild(node2);
-                }*!/
+                handleTextInput('\v', null, getViewCaretIndex());
             }
         }
     })
-    pane.addEventListener('beforeinput', function (e){
-        e.preventDefault();
-        let index = getCaretIndex(pane);
-        viewInsertText(e.data, null, index);
-        /!*if (e.data) {
-            let parent = e.getTargetRanges()[0].startContainer;
-            if (parent.tagName !== 'span')
-                parent = parent.parentElement;
-            const br = parent.querySelector('.default-break');
-            if (br)
-                br.parentElement.removeChild(br);
-        }*!/
-    })*/
+    pane.addEventListener('beforeinput', function (ev){
+        ev.preventDefault();
+        handleTextInput(ev.data, null, getViewCaretIndex());
+    });
 }
 
 const pageWidth = '210mm';
@@ -630,76 +522,6 @@ console.log(el);
 firstPage.text.innerText.length*/
 
 //cursor position in text + visual
-function getCaretIndex(element) {
-    let position = 0;
-    const isSupported = typeof window.getSelection !== "undefined";
-    if (isSupported) {
-        const selection = window.getSelection();
-        if (selection.rangeCount !== 0) {
-            const range = window.getSelection().getRangeAt(0);
-            const preCaretRange = range.cloneRange();
-            let start = preCaretRange.startContainer;
-            let end = preCaretRange.endContainer;
-
-            //first
-            let el1 = start;
-            while (el1 && el1.className !== 'text'){
-                el1 = el1.parentElement;
-            }
-            let ch0 = start.childNodes[0];
-            let ch1 = start.childNodes[1];
-            let before = preCaretRange.startOffset;
-            if (before > 0 &&
-                ((ch0 && ch0.className && ch0.className.match(/(vertical-placeholder)|(default-break)/)) ||
-                    (ch1 && ch1.className && ch1.className.match(/(vertical-placeholder)|(default-break)/)))
-            )
-                before--;
-            //offset in pages
-            let el = pages.get(el1).prev;
-            while (el) {
-                before += el.text.innerText.length;
-                let children = el.text.childNodes;
-                children.forEach(value => {if (value.innerText==='\n') before--;})
-                if (el.querySelector('.default-break'))
-                    before--;
-                before++;
-                el = el.prev;
-            }
-            //offset in divs
-            let sibling = start.parentElement.parentElement;
-            if (sibling.className === 'text')
-                sibling = start.parentElement;
-            sibling = sibling.previousSibling;
-            while (sibling != null) {
-                if (sibling.innerText !== '\n')
-                    before += sibling.innerText.length + 1;
-                else
-                    before += 1;
-                sibling = sibling.previousSibling;
-            }
-            //offset inside div
-            let localSibling = start.previousSibling;
-            while (localSibling != null){
-                if (localSibling.tagName === 'BR')
-                    before += 1;
-                else
-                    before += localSibling.textContent.length + 1;
-                localSibling = localSibling.previousSibling;
-            }
-
-            //account for filler span && vertical placeholder
-            /*if (before > 0 && start.nodeName !== '#text') {
-                if (start.querySelector('.default-break') ||
-                    start.querySelector('.vertical-placeholder'))
-                    before--;
-            }*/
-
-            position = before;
-        }
-    }
-    console.log(position - caretAdjustment);
-    return position - caretAdjustment;
-}
 
 function getCaretCoordinates(element) {
     let x = 0,
@@ -782,7 +604,7 @@ function removeFromTextNode(el, pos, size){
 function createNewTextNode(el, text, style, isBefore, isChild){
     const tmp = document.createElement('span');
     //TODO: styling
-    tmp.appendChild(document.createTextNode(text));
+    if (text) tmp.appendChild(document.createTextNode(text));
     if (isChild){
         el.appendChild(tmp);
     }
@@ -795,14 +617,6 @@ function createNewTextNode(el, text, style, isBefore, isChild){
     return tmp;
 }
 
-function addVerticalBreak(el, isBefore){
-    const tmp = document.createElement('br');
-    if (isBefore)
-        el.before(tmp);
-    else
-        el.after(tmp);
-    return tmp;
-}
 function addNewLine(el, isBefore){
 
 }

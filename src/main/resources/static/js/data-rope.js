@@ -48,13 +48,12 @@ function TreeNode(parent, left, right, text, style) {
     this.newLineCount = text ? (text.match(/\n/g)||[]).length : 0;
     this.style = [];
     this.style.concat(Array.isArray(style) ? style : style ? [style] : []);
-
     //functions
     this.getText = () => {
         return text;
     }
     this.getLength = () => {
-        return this.text? this.text.length : this.length;
+        return this.text ? this.text.length : this.length;
     }
     this.getLeft = () => {
         return this.children[0];
@@ -79,7 +78,9 @@ function TreeNode(parent, left, right, text, style) {
     }
     this.updateLength = () => {
         if (this.text == null)
-            this.length = (this.getLeft() ? this.getLeft().length : 0) + (this.getRight() ? this.getRight().length : 0);
+            this.length = (this.getLeft() ? this.getLeft().getLength() : 0) + (this.getRight() ? this.getRight().getLength() : 0);
+        else
+            this.length = this.text.length;
         if (this.parent)
             this.parent.updateLength();
     }
@@ -87,6 +88,7 @@ function TreeNode(parent, left, right, text, style) {
         if (this.getLeft()) {
             this.getLeft().deleteLeft();
             this.getLeft().deleteRight();
+            this.children[0].text = null;
             this.children[0] = null;
         }
         this.updateLength();
@@ -95,6 +97,7 @@ function TreeNode(parent, left, right, text, style) {
         if (this.getRight()) {
             this.getRight().deleteLeft();
             this.getRight().deleteRight();
+            this.children[1].text = null;
             this.children[1] = null;
         }
         this.updateLength();
@@ -220,9 +223,9 @@ function ropeInsertText(text, style, pos) {
 }
 
 function ropeDeleteText(pos, length) {
-    let start = getAffectedNode(ropeRoot, pos)
+    let start = getAffectedNode(ropeRoot, pos + 1)
     let affected = start[0];
-    let remainingPos = pos - affected[1];
+    let remainingPos = pos - start[1];
 
     let remainingLength = length;
 
@@ -231,24 +234,33 @@ function ropeDeleteText(pos, length) {
     let parent = lastNode.parent;
     let isLeft = lastNode.isLeft();
 
+    let changed = [];
     if (length === ropeRoot.getLength()){
+        let el = leftmostChild(ropeRoot);
+        while (el){
+            changed.push({el : el, before : el.text});
+            el.nextTextNode();
+        }
         ropeRoot.deleteLeft();
         ropeRoot.deleteRight();
-        return;
+        return changed;
     }
 
     if (remainingPos > 0) {
         let toDelete = clamp(remainingLength, 0, nodeLength);
         remainingLength -= toDelete;
+        changed.push({el : lastNode, before : lastNode.text});
         deletePartFromTextNode(lastNode, remainingPos, toDelete);
         lastNode = nextTextNode(lastNode);
     }
     else {
+        changed.push({el : lastNode, before : lastNode.text});
         if (nodeLength > remainingLength) {
             deletePartFromTextNode(lastNode, 0, remainingLength);
             remainingLength = 0;
         }
         else {
+            lastNode.text = null;
             remainingLength -= nodeLength;
             lastNode = nextTextNode(lastNode);
             isLeft ? parent.deleteLeft() : parent.deleteRight();
@@ -260,6 +272,7 @@ function ropeDeleteText(pos, length) {
     }
 
     while (remainingLength > 0){
+        changed.push({el : lastNode, before : lastNode.text});
         nodeLength = lastNode.getLength();
         parent = lastNode.parent;
         isLeft = lastNode.isLeft();
@@ -269,6 +282,7 @@ function ropeDeleteText(pos, length) {
         }
         else {
             remainingLength -= nodeLength;
+            lastNode.text = null;
             lastNode = nextTextNode(lastNode);
             isLeft ? parent.deleteLeft() : parent.deleteRight();
             while (parent.getLeft() == null && parent.getRight() == null){
@@ -278,6 +292,7 @@ function ropeDeleteText(pos, length) {
         }
     }
 
+    return changed;
 }
 
 function deletePartFromTextNode(node, pos, length){
@@ -413,20 +428,11 @@ function getOffset(node){
     let curNode = node.parent;
     let prevNode = node;
     while (curNode){
-        if (curNode.getLeft() !== prevNode)
+        if (curNode.getLeft() && curNode.getLeft() !== prevNode)
             res += curNode.getLeft().getLength();
         prevNode = curNode;
         curNode = curNode.parent;
     }
-    /*let isLeft = node.isLeft();
-    while(curNode && (isLeft || curNode.getLeft() == null)){
-        if (curNode.parent) isLeft = curNode.isLeft();
-        curNode = curNode.parent;
-    }
-
-    let res = 0;
-    if (curNode && curNode !== node && curNode.getLeft() !== node)
-        res = ropeRoot.getLength() - curNode.getRight().getLength();*/
 
     return res;
 }
