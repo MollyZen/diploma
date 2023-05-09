@@ -207,6 +207,10 @@ function insertNewLine(pos){
         viewEls.push(added[1]);
         viewEls.forEach(val => modelViewRelMap.set(val, newTextNode));
 
+        const br = document.createElement('br');
+        br.setAttribute('class', 'newline');
+        newTextNode.appendChild(br);
+
         modelViewRelMap.delete(removed[0]);
         modelViewRelMap.set(added[2], view);
         modelViewRelMap.set(newTextNode, viewEls);
@@ -352,7 +356,16 @@ function deleteText(pos, length){
         let id = viewEls.findIndex(vall => vall === val.el);
 
         if (val.before === '\n') {
-
+            viewEls.splice(id,1);
+            view.childNodes[view.childNodes.length - 1].remove();
+            const parentDiv = view.parentElement;
+            const nextDiv = view.parentElement.nextSibling;
+            nextDiv.childNodes.forEach(val => {
+                val.remove();
+                parentDiv.appendChild(val);
+            })
+            nextDiv.remove();
+            modelViewRelMap.delete(val.el);
         }
         else if (val.before === '\v') {
             view.childNodes[view.childNodes.length - 1].remove();
