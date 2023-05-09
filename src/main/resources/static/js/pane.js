@@ -35,8 +35,8 @@ function setPane(newPane) {
     pane.addEventListener('keydown', function (ev){
         if (ev.key === 'Backspace'){
             ev.preventDefault();
-            //TODO: сделать проверку на то, сколько элементов выбрано при удалении
-            deleteText(getViewCaretIndex() - 1, 1);
+            const [start, end] = getViewCaretStartEnd();
+            deleteText(start - 1, end - start);
         }
         else if (ev.key === 'Enter'){
             ev.preventDefault();

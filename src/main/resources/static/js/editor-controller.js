@@ -400,19 +400,39 @@ function getViewCaretIndex(){
         const range = window.getSelection().getRangeAt(0);
         const preCaretRange = range.cloneRange();
         let start = preCaretRange.startContainer;
-        let end = preCaretRange.endContainer;
 
-        let isText = start.nodeName === '#text';
-        let startNode = isText ? start.parentNode : start;
-        let modelNode = modelViewRelMap.get(startNode);
-        let before = modelNode[0].getOffset();
-        if (isText)
-            before += preCaretRange.startOffset;
-        else
-            before+= startNode.textContent.length;
-
-        return before;
+        return getOffsetForElement(start, range.startOffset);
     }
     else
         return -1;
+}
+
+function getViewCaretStartEnd(){
+    const selection = window.getSelection();
+    if (selection.rangeCount !== 0){
+        const range = window.getSelection().getRangeAt(0);
+        const preCaretRange = range.cloneRange();
+        let start = preCaretRange.startContainer;
+        let end = preCaretRange.endContainer;
+
+        return [
+            getOffsetForElement(start, range.startOffset),
+            getOffsetForElement(end, range.endOffset)
+        ];
+    }
+    else
+        return [-1, - 1];
+}
+
+function getOffsetForElement(el, rangeOffset){
+    let isText = el.nodeName === '#text';
+    let startNode = isText ? el.parentNode : el;
+    let modelNode = modelViewRelMap.get(startNode);
+    let before = modelNode[0].getOffset();
+    if (isText)
+        before += rangeOffset;
+    else
+        before+= startNode.textContent.length;
+
+    return before;
 }
