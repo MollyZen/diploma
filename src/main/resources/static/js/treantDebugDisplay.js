@@ -24,8 +24,10 @@ class Tree{
         while (queue.length !== 0) {
             const node = queue.shift()
             let treantNode = {}
+            let transformed = node.text ? JSON.stringify(node.text) : node.text;
+            if (transformed === '"\\u000b"') transformed = '"\\v"';
             treantNode["text"] = {
-                name : node.text ? node.length + ', "' + node.text + '"' : node.length
+                name : transformed ? node.length + ', ' + transformed : node.length
             }
             if (node.parent)
                 treantNode["parent"] = map.get(node.parent);
