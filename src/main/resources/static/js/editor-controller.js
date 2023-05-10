@@ -139,8 +139,8 @@ function insertText(text, style, pos){
             if (view.textContent.length + text.length <= SPAN_SIZE_LIMIT){
                 let viewNodes = modelViewRelMap.get(view);
 
-                const offset = prevEl.getOffset();
-                appendToTextNode(view, offset + prevEl.text.length, text);
+                const offset = viewNodes[0].getOffset();
+                appendToTextNode(view, pos - offset, text);
 
                 const id = viewNodes.findIndex(val => val === prevEl);
                 modelViewRelMap.set(added[0], view);
@@ -166,16 +166,32 @@ function insertText(text, style, pos){
         }
         if (!done){
             let newView;
-            if (prevEl){
-                let view = modelViewRelMap.get(prevEl);
-                newView = createNewTextNode(view, text, style, false);
+            let prevView = modelViewRelMap.get(prevEl);
+            let nextView = modelViewRelMap.get(nextEl);
+
+            if (prevView === nextView){
+                const viewEls = modelViewRelMap.get(prevView);
+                const id = viewEls.findIndex(val => val === nextEl);
+                const [first, second] = splitString(prevView.textContent, pos - viewEls[0].getOffset());
+                const lastParts = viewEls.splice(id, viewEls.length - id);
+                lastParts.unshift(added[0]);
+                newView = createNewTextNode(prevView, null, style, false);
+                removeFromTextNode(prevView, first.length, second.length);
+                appendToTextNode(newView , 0, added[0].text + second);
+
+                modelViewRelMap.set(prevView, viewEls)
+                modelViewRelMap.set(newView, lastParts);
+                viewEls.forEach(val => modelViewRelMap.set(val, prevView));
+                lastParts.forEach(val => modelViewRelMap.set(val, newView));
             }
-            else if (nextEl){
-                let view = modelViewRelMap.get(nextEl);
-                newView = createNewTextNode(view, text, style, true);
+            else {
+                if (prevEl)
+                    newView = createNewTextNode(prevView, text, style, false);
+                else if (nextEl)
+                    newView = createNewTextNode(nextView, text, style, true);
+                modelViewRelMap.set(added[0], newView);
+                modelViewRelMap.set(newView, [added[0]]);
             }
-            modelViewRelMap.set(added[0], newView);
-            modelViewRelMap.set(newView, [added[0]]);
         }
 
     }

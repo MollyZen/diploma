@@ -1,34 +1,20 @@
 var pane;
 var firstPage;
 
+let userCaret = null;
+let lastPositionChangeStart = null;
+let lastPositionChangeLength = null;
+
 let pages = new Map();
 
 let thereWasDelete = false;
 
 function setPane(newPane) {
     pane = newPane;
-    /*    pane.addEventListener('input', (ev) => {
-            const range = window.getSelection().getRangeAt(0);
-            const preCaretRange = range.cloneRange();
-            let parent = preCaretRange.startContainer;
-            if (parent.nodeName === '#text')
-                parent = parent.parentElement;
-            if (parent.innerText.length === 0 && parent.innerText.match(/\n+/g)) {
-                if (thereWasDelete) {
-                    const tmp = parent.childNodes;
-                    tmp[tmp.length -1].setAttribute('class', 'default-break');
-                    thereWasDelete = false;
-                }
-                else
-                    addDefaultBreak(parent);
-            }
-
-            getCaretIndex(pane);
-            toggleTooltip(ev, pane);
-        })*/
     //mouse
     pane.addEventListener('click', (e) => {
         //getCaretIndex(pane);
+        userCaret = getViewCaretIndex();
         console.log(getViewCaretIndex());
         //toggleTooltip(e, pane);
     })
@@ -36,22 +22,39 @@ function setPane(newPane) {
         if (ev.key === 'Backspace'){
             ev.preventDefault();
             const [start, end] = getViewCaretStartEnd();
-            deleteText(start - 1, end - start);
+            if (start === end)
+                deleteText(start - 1, 1);
+            else
+                deleteText(start, end - start);
         }
         else if (ev.key === 'Enter'){
             ev.preventDefault();
-            if (!ev.shiftKey) {
+            if (!ev.shiftKey)
                 handleTextInput('\n', null, getViewCaretIndex());
-            }
-            else{
+            else
                 handleTextInput('\v', null, getViewCaretIndex());
-            }
         }
     })
     pane.addEventListener('beforeinput', function (ev){
         ev.preventDefault();
-        handleTextInput(ev.data, null, getViewCaretIndex());
+        const currentCaret = getViewCaretIndex();
+        lastPositionChangeStart = currentCaret;
+        lastPositionChangeLength = ev.data.length;
+        handleTextInput(ev.data, null, currentCaret);
+        //setCaret(currentCaret + ev.data.length);
+        pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
     });
+    pane.addEventListener('input', (ev) => {
+        ev.preventDefault();
+        if (lastPositionChangeStart != null){
+            if (lastPositionChangeStart <= userCaret){
+                setCaret(userCaret + lastPositionChangeLength);
+                userCaret += lastPositionChangeLength;
+                lastPositionChangeStart = null;
+                lastPositionChangeLength = null;
+            }
+        }
+    })
 }
 
 const pageWidth = '210mm';
@@ -121,12 +124,12 @@ function addPage(prevPage, nextPage){
     pages.set(text, obj);
 
     //other events
-    text.addEventListener('overflow', function (ev){
+    /*text.addEventListener('overflow', function (ev){
         const nextPage = addPage(obj, null);
         setCaret(nextPage, nextPage.text.childNodes[0].childNodes[0],1);
         ev.preventDefault();
         console.log(obj);
-    })
+    })*/
     text.addEventListener('paste', (ev) => {
         console.log(ev.clipboardData.getData('text/plain'));
     })
@@ -142,35 +145,29 @@ function addPage(prevPage, nextPage){
     return obj;
 }
 
-let w3 = true;
-let ie = false;
-function getCaretPosition(element) {
-    var caretOffset = 0;
-    if (w3) {
-        var range = window.getSelection().getRangeAt(0);
-        var preCaretRange = range.cloneRange();
-        preCaretRange.selectNodeContents(element);
-        preCaretRange.setEnd(range.endContainer, range.endOffset);
-        caretOffset = preCaretRange.toString().length;
-    } else if (ie) {
-        var textRange = document.selection.createRange();
-        var preCaretTextRange = document.body.createTextRange();
-        preCaretTextRange.moveToElementText(element);
-        preCaretTextRange.setEndPoint("EndToEnd", textRange);
-        caretOffset = preCaretTextRange.text.length;
+function setCaret(pos) {
+    const [node, checked] = getAffectedNode(ropeRoot, pos);
+    const view = modelViewRelMap.get(node);
+    const viewEls = modelViewRelMap.get(view);
+    const viewOffset = viewEls[0].getOffset();
+
+    let range = document.createRange();
+
+    try {
+        range.setStart(view.childNodes[0], pos - viewOffset);
+    } catch (error) {
+        //range.setStart(view, pos - viewOffset - 1);
+        const ch = view.parentElement.childNodes[0];
+        const chEls = modelViewRelMap.get(ch);
+        const newOffset =  chEls[0].getOffset();
+
+        range.setStart(view.parentElement, pos - newOffset - 1);
     }
-    return caretOffset;
-}
+    range.collapse(true);
 
-function setCaret(editable, subel, pos) {
-    let range = document.createRange()
-    let sel = window.getSelection()
-
-    range.setStart(subel, pos)
-    range.collapse(true)
-
-    sel.removeAllRanges()
-    sel.addRange(range)
+    let sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
 }
 
 function removePage(page) {
