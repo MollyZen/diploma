@@ -10,8 +10,7 @@ const StyleCodes = {
     'FONT_SIZE' : 6,
     'LIST_ORDERED' : 7,
     'LIST_UNORDERED' : 8,
-    'HEADER' : 9,
-    'PARAGRAPH' : 10
+    'HEADER' : 9
 }
 function dataRopeTest() {
 
@@ -328,7 +327,7 @@ function getAffectedNode(start, pos) {
             node = node.getLeft();
         }
         else if (node.getRight() && (posChecked + node.getRight().getLength() + (node.getLeft() ? node.getLeft().getLength() : 0)) >= pos) {
-            posChecked += node.getLeft().getLength();
+            posChecked += node.getLeft() ? node.getLeft().getLength() : 0;
             node = node.getRight();
         }
         else

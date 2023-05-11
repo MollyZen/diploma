@@ -22,36 +22,98 @@ function setPane(newPane) {
         if (ev.key === 'Backspace'){
             ev.preventDefault();
             const [start, end] = getViewCaretStartEnd();
-            if (start === end)
-                deleteText(start - 1, 1);
-            else
-                deleteText(start, end - start);
+            userCaret = start;
+            let changes;
+            if (start === end) {
+                changes = new Changes(curUser, curRev, start - 1);
+                const deletedText = deleteText(start - 1, 1);
+                changes.removeText(1, deletedText)
+                lastPositionChangeStart = start - 1;
+                lastPositionChangeLength = -1;
+            }
+            else {
+                changes = new Changes(curUser, curRev, start);
+                const deletedText = deleteText(start, end - start);
+                changes.removeText(end - start, deletedText)
+                lastPositionChangeStart = start;
+                lastPositionChangeLength = (end - start) * -1;
+            }
+
+            submitChanges(changes);
+            pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
         }
         else if (ev.key === 'Enter'){
             ev.preventDefault();
-            if (!ev.shiftKey)
-                handleTextInput('\n', null, getViewCaretIndex());
-            else
-                handleTextInput('\v', null, getViewCaretIndex());
+            const [start, end] = getViewCaretStartEnd();
+            userCaret = start;
+            const changes = new Changes(curUser, curRev, start);
+
+            let deletedText = '';
+            if (end > start) {
+                deletedText = deleteText(start, end - start);
+                changes.removeText(end - start, deletedText)
+            }
+
+            if (!ev.shiftKey) {
+                handleTextInput('\n', null, start);
+                changes.addText('\n', null);
+            }
+            else {
+                handleTextInput('\v', null, start);
+                changes.addText('\n', null);
+            }
+
+            lastPositionChangeStart = start;
+            lastPositionChangeLength = 1;
+
+            submitChanges(changes);
+            pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
         }
     })
     pane.addEventListener('beforeinput', function (ev){
         ev.preventDefault();
-        const currentCaret = getViewCaretIndex();
-        lastPositionChangeStart = currentCaret;
+
+        const [start, end] = getViewCaretStartEnd();
+        userCaret = start;
+
+        const changes = new Changes(curUser, curRev, start);
+        let deletedText = '';
+        if (end > start) {
+            deletedText = deleteText(start, end - start);
+            changes.removeText(end - start, deletedText)
+        }
+        handleTextInput(ev.data, null, start);
+        changes.addText(ev.data, null);
+        lastPositionChangeStart = start;
         lastPositionChangeLength = ev.data.length;
-        handleTextInput(ev.data, null, currentCaret);
-        //setCaret(currentCaret + ev.data.length);
+
+        submitChanges(changes);
         pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
     });
     pane.addEventListener('input', (ev) => {
         ev.preventDefault();
         if (lastPositionChangeStart != null){
-            if (lastPositionChangeStart <= userCaret){
-                setCaret(userCaret + lastPositionChangeLength);
-                userCaret += lastPositionChangeLength;
-                lastPositionChangeStart = null;
-                lastPositionChangeLength = null;
+            if (lastPositionChangeLength > 0){
+                if (lastPositionChangeStart <= userCaret){
+                    setCaret(userCaret + lastPositionChangeLength);
+                    userCaret += lastPositionChangeLength;
+                    lastPositionChangeStart = null;
+                    lastPositionChangeLength = null;
+                }
+                else {
+                    setCaret(userCaret)
+                }
+            }
+            else {
+                if (lastPositionChangeStart < userCaret){
+                    setCaret(userCaret + lastPositionChangeLength);
+                    userCaret += lastPositionChangeLength;
+                    lastPositionChangeStart = null;
+                    lastPositionChangeLength = null;
+                }
+                else {
+                    setCaret(userCaret)
+                }
             }
         }
     })
@@ -66,7 +128,6 @@ const leftMargin = '25.4mm';
 const rightMargin = '25.4mm';
 
 function initPages(){
-    //firstPage = addPage(null, null);
     pane.setAttribute('style', pane.getAttribute('style') + '; width: ' + pageWidth);
     pane.setAttribute('style', pane.getAttribute('style') + '; height: ' + pageHeight);
     pane.setAttribute('style', pane.getAttribute('style') + '; background-color: white');
@@ -146,7 +207,14 @@ function addPage(prevPage, nextPage){
 }
 
 function setCaret(pos) {
-    const [node, checked] = getAffectedNode(ropeRoot, pos);
+    let [node, checked] = getAffectedNode(ropeRoot, pos);
+    if (node.text.match(/(\n|\v)/)) {
+        const prevNode = node;
+        node = node.nextTextNode();
+        if (node == null)
+            node = prevNode;
+    }
+
     const view = modelViewRelMap.get(node);
     const viewEls = modelViewRelMap.get(view);
     const viewOffset = viewEls[0].getOffset();
@@ -170,20 +238,6 @@ function setCaret(pos) {
     sel.addRange(range);
 }
 
-function removePage(page) {
-    page.page.remove();
-    pages.delete(page);
-    if (page.prev) {
-        page.prev.next = page.next;
-        if (!page.next)
-            removePageBreak(page.prev)
-    }
-    if (page.next) {
-        removePageBreak(page);
-        page.next.prev = page.prev;
-    }
-}
-
 function addPageBreak(page){
     const pageBreak = document.createElement("div");
     pageBreak.setAttribute('style', 'height: 30px;');
@@ -192,10 +246,6 @@ function addPageBreak(page){
     page.break = pageBreak;
 
     return pageBreak;
-}
-function removePageBreak(page) {
-    page.break.remove();
-    page.break = null;
 }
 
 function addDefaultBreak(anchor){
@@ -499,25 +549,6 @@ function textToNodes(text, afterBreak, attachAtEnd){
     return res;
 }
 
-/*selection = window.getSelection();
-range = selection.getRangeAt(0).cloneRange();
-start = range.startContainer;
-end = range.endContainer;
-
-el = start;
-while (el && el.className !== 'text'){
-  el = el.parentElement;
-}
-console.log(el);
-
-el = end;
-while (el && el.className !== 'text'){
-  el = el.parentElement;
-}
-console.log(el);
-
-firstPage.text.innerText.length*/
-
 //cursor position in text + visual
 
 function getCaretCoordinates(element) {
@@ -614,9 +645,6 @@ function createNewTextNode(el, text, style, isBefore, isChild){
     return tmp;
 }
 
-function addNewLine(el, isBefore){
-
-}
 function addParagraph(el, text, style, isBefore){
     const tmp = document.createElement('div');
     const span = document.createElement('span');

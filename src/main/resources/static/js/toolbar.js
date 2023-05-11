@@ -7,13 +7,14 @@ let font = 'Arial';
 
 function toolbarSetup() {
     const userAction = async () => {
-        const response = await fetch('http://localhost:8082/rest/generate-id');
+        const response = await fetch('/rest/getUsername');
         const res = await response.text(); //extract JSON from the http response
         $('#firstName').text(res);
         var firstName = $('#firstName').text();
         var lastName = $('#lastName').text();
         var intials = $('#firstName').text().charAt(0) + $('#lastName').text().charAt(0);
         var profileImage = $('#currentImage').text(intials);
+        curUser = res;
     };
     userAction.apply();
 

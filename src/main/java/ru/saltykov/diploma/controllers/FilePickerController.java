@@ -36,7 +36,7 @@ public class FilePickerController {
         /*ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("static/file-picker.html");
         return modelAndView;*/
-        return IOUtils.toString(Files.newInputStream(Path.of("C:\\Users\\MZ\\IdeaProjects\\diplomaNew\\src\\main\\resources\\static\\file-picker.html")));
+        return IOUtils.toString(Files.newInputStream(Path.of("C:\\Users\\MollyZen\\IdeaProjects\\diploma\\src\\main\\resources\\static\\file-picker.html")));
     }
 
     @GetMapping(value = "/file/{id}/edit", produces = "text/html")
@@ -45,6 +45,6 @@ public class FilePickerController {
         /*ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("");
         return modelAndView;*/
-        return IOUtils.toString(Files.newInputStream(Path.of("C:\\Users\\MZ\\IdeaProjects\\diplomaNew\\src\\main\\resources\\static\\editor.html")));
+        return IOUtils.toString(Files.newInputStream(Path.of("C:\\Users\\MollyZen\\IdeaProjects\\diploma\\src\\main\\resources\\static\\editor.html")));
     }
 }

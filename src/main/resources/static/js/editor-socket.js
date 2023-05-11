@@ -6,7 +6,7 @@ var split = queryString.split('/');
 split.pop();
 const fileId = split.pop();
 function connect() {
-    var new_conn = function() {
+    let new_conn = function() {
         socket = new SockJS('/gs-guide-websocket');
     };
     new_conn();
@@ -15,7 +15,7 @@ function connect() {
     stompClient.heartbeat.incoming = 10000;
     stompClient.connect({}, function (frame) {
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/user/queue/session/' + fileId, (message) => parseMessage(message));
+        stompClient.subscribe('/user/queue/session/' + fileId, (message) => processMessage(message));
     });
     socket.onclose = function (close) {
         stompClient.disconnect();
@@ -38,12 +38,13 @@ function disconnect() {
 }
 
 $(function () {
+    window.history.replaceState({}, document.title, window.location.href.split('/').pop().split('?').shift());
     $("form").on('submit', function (e) {
         e.preventDefault();
     });
     $( "#connect" ).click(function() { connect();});
     $( "#disconnect" ).click(function() { disconnect(); });
-    $( "#send" ).click(function() { stompClient.send('/app/session/' + fileId,{'message-id': makeid(5)},null); });
+    $( "#send" ).click(function() { stompClient.send('/app/session/' + fileId,{'message-id': makeid(5)},"loliruyu"); });
 });
 
 function makeid(length) {

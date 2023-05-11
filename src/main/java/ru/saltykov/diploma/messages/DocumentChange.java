@@ -1,16 +1,12 @@
 package ru.saltykov.diploma.messages;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.jackson.Jacksonized;
+import lombok.*;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class DocumentChange {
-    String user;
+public class DocumentChange extends CollaborationMessage{
     String changes;
     Long revision;
 }

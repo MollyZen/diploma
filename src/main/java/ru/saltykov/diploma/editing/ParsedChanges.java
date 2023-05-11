@@ -20,7 +20,7 @@ public class ParsedChanges {
         DocumentChange res = new DocumentChange();
         res.setUser(this.user);
         res.setRevision(this.revision);
-        res.setChanges(start.toString() + String.format("%+d", length) + "#" + tokens.stream().map(e -> e.getToken() + e.getValue()).collect(Collectors.joining(" ")) + "#" + text);
+        res.setChanges(start.toString() + String.format("%+d", length) + "#" + tokens.stream().map(e -> e.getToken() + e.getValue()).collect(Collectors.joining("")) + "#" + text);
         return res;
     }
 

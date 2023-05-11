@@ -6,10 +6,13 @@ import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.messages.DocumentChange;
 import ru.saltykov.diploma.storage.DataStorage;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Transformer {
@@ -18,6 +21,8 @@ public class Transformer {
     private String fileId;
     private Long revision = 0L;
 
+    private List<Principal> users = new ArrayList<>();
+
     public Transformer(AccessPoint accessPoint, DataStorage dataStorage, String fileId) {
         this.accessPoint = accessPoint;
         this.dataStorage = dataStorage;
@@ -25,20 +30,16 @@ public class Transformer {
     }
 
     @SneakyThrows
-    synchronized DocumentChange applyChanges(DocumentChange changes){
+    synchronized public DocumentChange applyChanges(DocumentChange changes){
         DocumentChange transformed = null;
-        try{
-             transformed = parse(changes);
-             accessPoint.insertChanges(transformed);
-             ++revision;
-        }catch (Exception ex){
-            throw ex;
-        }
+        transformed = parse(changes);
+        accessPoint.insertChanges(transformed);
+        ++revision;
 
         return transformed;
     }
 
-    synchronized void insertText(){
+    synchronized public void insertText(){
         String text = combineChanges(revision);
         accessPoint.addText(revision, text);
         if (dataStorage != null)
@@ -124,6 +125,7 @@ public class Transformer {
     }
 
     private ParsedChanges parseChanges(DocumentChange changes){
+        //формат позиция(+-)изменение_длины#токены#текст
         ParsedChanges res = new ParsedChanges();
         res.setUser(changes.getUser());
         res.setRevision(changes.getRevision());
@@ -138,7 +140,13 @@ public class Transformer {
         res.setLength(Integer.parseInt(subsplit[1]) * (negative ? -1 : 1));
 
         //tokens
-        subsplit = split[1].split(" ");
+        Matcher m = Pattern.compile("[\\-+*=][0-9]+")
+                .matcher(split[1]);
+        List<String> tmp = new ArrayList<>();
+        while (m.find())
+            tmp.add(m.group());
+
+        subsplit = tmp.toArray(new String[0]);
         res.setTokens(Arrays.stream(subsplit).map(e -> new FormattedToken(e.substring(0, 1), Integer.parseInt(e.substring(1)))).collect(Collectors.toList()));
 
         //text
@@ -148,5 +156,19 @@ public class Transformer {
             res.setText("");
 
         return res;
+    }
+
+    public void addUser(Principal user){
+        users.add(user);
+        System.out.println("Connected users: " + users.stream().map(Principal::getName).collect(Collectors.joining(", ")));
+    }
+
+    public void removeUser(Principal user){
+        users.remove(user);
+        System.out.println("Connected users: " + users.stream().map(Principal::getName).collect(Collectors.joining(", ")));
+    }
+
+    public List<Principal> getUsers(){
+        return users;
     }
 }

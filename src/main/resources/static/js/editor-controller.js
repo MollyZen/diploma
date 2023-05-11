@@ -1,7 +1,9 @@
 const modelViewRelMap = new Map();
 
-const SPAN_SIZE_LIMIT = 6;
+const SPAN_SIZE_LIMIT = 128;
 const ROPE_NODE_SIZE_LIMIT = 4;
+
+const actionHistory = [];
 
 function initController() {
     //init model
@@ -241,9 +243,18 @@ function insertNewLine(pos){
             modelViewRelMap.set(newPar.childNodes[0], [added[0]]);
         }
         else if (nextEl && nextEl.text === '\n') {
-            newPar = addParagraph(modelViewRelMap.get(nextEl).parentNode, null, null, true);
-            modelViewRelMap.set(added[0], newPar.childNodes[0]);
-            modelViewRelMap.set(newPar.childNodes[0], [added[0]]);
+            newPar = addParagraph(modelViewRelMap.get(nextEl).parentNode, null, null, false);
+            const nextView = modelViewRelMap.get(nextEl);
+            const nextViewEls = modelViewRelMap.get(nextView);
+
+            const oldBr = nextViewEls.pop();
+            nextViewEls.push(added[0]);
+
+            modelViewRelMap.set(added[0], nextView);
+            modelViewRelMap.set(oldBr, newPar.childNodes[0]);
+
+            modelViewRelMap.set(nextView, nextViewEls);
+            modelViewRelMap.set(newPar.childNodes[0], [oldBr]);
         }
         else {
             const prevView = modelViewRelMap.get(prevEl);
@@ -366,7 +377,21 @@ function insertLineBreak(pos){
 function deleteText(pos, length){
     let changed = ropeDeleteText(pos, length); // {el, before}
 
-    changed.forEach(val => {
+    const first= 0;
+    const last = changed.length - 1;
+    let srcString = '';
+
+    let i = 0;
+    while (i < changed.length){
+        let val = changed[i];
+
+        if (i === first)
+            srcString += val.el.text ? val.before.slice(val.el.text.length) : val.before;
+        else if (i === last)
+            srcString += val.el.text ? val.before.slice(0, val.el.text.length) : val.before;
+        else
+            srcString += val.el.before;
+
         let view = modelViewRelMap.get(val.el);
         let viewEls = modelViewRelMap.get(view);
         let id = viewEls.findIndex(vall => vall === val.el);
@@ -389,7 +414,7 @@ function deleteText(pos, length){
             modelViewRelMap.delete(val.el);
         }
         else {
-            let offset = viewEls[id - 1] ? viewEls[id - 1].getOffset() : 0;
+            let offset = viewEls[id - 1] ? viewEls[id - 1].getOffset() + viewEls[id - 1].getLength() : 0;
             if (val.el.text) {
                 removeFromTextNode(view, offset, val.before.length);
                 appendToTextNode(view, offset, val.el.text);
@@ -406,7 +431,15 @@ function deleteText(pos, length){
             modelViewRelMap.delete(view);
             view.remove();
         }
-    })
+        ++i;
+    }
+
+    //returns deleted part
+    return srcString;
+}
+
+function changeFormatting(pos, length, style){
+
 }
 
 //util
