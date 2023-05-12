@@ -140,14 +140,20 @@ public class Transformer {
         res.setLength(Integer.parseInt(subsplit[1]) * (negative ? -1 : 1));
 
         //tokens
-        Matcher m = Pattern.compile("[\\-+*=][0-9]+")
+        Matcher m = Pattern.compile("([\\-+=]|\\*[0-9]+:)[0-9]+")
                 .matcher(split[1]);
         List<String> tmp = new ArrayList<>();
         while (m.find())
             tmp.add(m.group());
 
         subsplit = tmp.toArray(new String[0]);
-        res.setTokens(Arrays.stream(subsplit).map(e -> new FormattedToken(e.substring(0, 1), Integer.parseInt(e.substring(1)))).collect(Collectors.toList()));
+        res.setTokens(Arrays.stream(subsplit).map(e -> {
+            int colonId = e.lastIndexOf(':');
+            if (colonId >= 0)
+                return new FormattedToken(e.substring(0, 1), Integer.parseInt(e.substring(1,colonId)), e.substring(colonId + 1));
+            else
+                return new FormattedToken(e.substring(0, 1), Integer.parseInt(e.substring(1)), null);
+        }).collect(Collectors.toList()));
 
         //text
         if (split.length == 3)

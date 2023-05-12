@@ -1,9 +1,11 @@
 let bold = false;
-let cursive = false;
-let underscore = false;
+let italic = false;
+let underline = false;
+let strikethrough = false;
 let fontSize = 11;
 let font = 'Arial';
 
+const enabledStyles = new Map();
 
 function toolbarSetup() {
     const userAction = async () => {
@@ -17,6 +19,57 @@ function toolbarSetup() {
         curUser = res;
     };
     userAction.apply();
+
+    $("#bold-button").click(function () {
+       if (bold){
+           bold = false;
+           enabledStyles.delete(STYLE_CODES.BOLD);
+           $(this).removeClass('active');
+       }
+       else{
+           bold = true;
+           enabledStyles.set(STYLE_CODES.BOLD, 1);
+           $(this).addClass('active');
+       }
+    });
+
+    $("#italic-button").click(function () {
+        if (italic){
+            italic = false;
+            enabledStyles.delete(STYLE_CODES.ITALIC);
+
+            $(this).removeClass('active');
+        }
+        else{
+            italic = true;
+            enabledStyles.set(STYLE_CODES.ITALIC, 1);
+            $(this).addClass('active');
+        }
+    });
+    $("#underline-button").click(function () {
+        if (underline){
+            underline = false;
+            enabledStyles.delete(STYLE_CODES.UNDERLINE);
+            $(this).removeClass('active');
+        }
+        else{
+            underline = true;
+            enabledStyles.set(STYLE_CODES.UNDERLINE, 1);
+            $(this).addClass('active');
+        }
+    });
+    $("#strikethrough-button").click(function () {
+        if (strikethrough){
+            strikethrough = false;
+            enabledStyles.delete(STYLE_CODES.STRIKETHROUGH);
+            $(this).removeClass('active');
+        }
+        else{
+            strikethrough = true;
+            enabledStyles.set(STYLE_CODES.STRIKETHROUGH, 1);
+            $(this).addClass('active');
+        }
+    });
 
     $(".default_option").click(function () {
         $(this).parent().toggleClass("active");
@@ -134,13 +187,24 @@ function toolbarSetup() {
     initPages();
 }
 
-function clamp(num, min, max) {
-    return Math.min(Math.max(num, min), max)
-}
-
 function createOverflowButton(id, elToMove){
     const el = elToMove.parentElement.createElement("div");
     el.setAttribute('id', id);
     el.setAttribute('class', 'bi-three-dots-vertical');
     elToMove.remove();
+}
+
+/// misc
+function clamp(num, min, max) {
+    return Math.min(Math.max(num, min), max)
+}
+
+function getEnabledStylesString(){
+    return [...enabledStyles.entries()].map(val => val[0] + ':' + val[1]).sort().join(' ');
+}
+
+function styleStringToArr(style){
+    return style.split(' ').map(val => {
+        return {code : val.split(':')[0], value : val.split(':')[1]};
+    }) ?? [];
 }

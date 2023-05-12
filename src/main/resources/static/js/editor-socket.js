@@ -43,18 +43,4 @@ $(function () {
         e.preventDefault();
     });
     $( "#connect" ).click(function() { connect();});
-    $( "#disconnect" ).click(function() { disconnect(); });
-    $( "#send" ).click(function() { stompClient.send('/app/session/' + fileId,{'message-id': makeid(5)},"loliruyu"); });
 });
-
-function makeid(length) {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-        counter += 1;
-    }
-    return result;
-}

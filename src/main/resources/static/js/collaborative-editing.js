@@ -33,14 +33,13 @@ function Changes(user, revision, start) {
 
     this.styleCodes = new Map();
 
-    //TODO: proper style nandling
     this.skipText = (length, style) => {
-        (style ?? []).forEach(val => this.tokens.push('*' + val));
+        styleStringToArr(style).forEach(val => this.tokens.push('*' + val.code + ':' + val.value));
         this.tokens.push('=' + length);
         return this;
     }
     this.addText = (text, style) => {
-        (style ?? []).forEach(val => this.tokens.push('*' + val));
+        styleStringToArr(style).forEach(val => this.tokens.push('*' + val.code + ':' + val.value));
         this.tokens.push('+' + text.length);
         this.text += text;
         return this;
@@ -180,7 +179,17 @@ function parseMessage(message) {
 }
 
 ///misc
-
+function makeid(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        counter += 1;
+    }
+    return result;
+}
 function addUser(name, colour){
     let newUser = document.createElement('span');
     newUser.setAttribute('class', 'tooltip');

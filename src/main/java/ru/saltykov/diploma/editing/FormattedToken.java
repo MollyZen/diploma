@@ -8,4 +8,5 @@ import lombok.Data;
 public class FormattedToken {
     private String token;
     private Integer value;
+    private String subValue;
 }

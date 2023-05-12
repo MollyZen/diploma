@@ -1,8 +1,10 @@
 var ropeRoot =  new TreeNode(null, null, null,null, null);
 
-const StyleCodes = {
+const usedStyles = new Map();
+
+const STYLE_CODES = {
     'BOLD' : 0,
-    'CURSIVE' : 1,
+    'ITALIC' : 1,
     'UNDERLINE' : 2,
     'STRIKETHROUGH' : 3,
     'FONT' : 4,
@@ -44,9 +46,7 @@ function TreeNode(parent, left, right, text, style) {
     this.children = [left, right];
     this.text = text;
     this.length = text ? text.length : null;
-    this.newLineCount = text ? (text.match(/\n/g)||[]).length : 0;
-    this.style = [];
-    this.style.concat(Array.isArray(style) ? style : style ? [style] : []);
+    this.style = style;
     //functions
     this.getText = () => {
         return text;
@@ -61,7 +61,6 @@ function TreeNode(parent, left, right, text, style) {
         return this.children[1];
     }
     this.setText = (text) => {
-        this.newLineCount = text ? (text.match(/\n/g)||[]).length : 0;
         this.text = text;
         this.updateLength();
     }

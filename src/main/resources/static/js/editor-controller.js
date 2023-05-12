@@ -14,9 +14,6 @@ function initController() {
     initialBreak.setAttribute('class', 'newline');
 
     const initialSpan = document.createElement('span');
-    initialSpan.setAttribute('style', 'font-size:calc(1/72*' + fontSize + 'in)');
-    initialSpan.setAttribute('style', initialSpan.getAttribute('style') + ';display:inline-block');
-    initialSpan.setAttribute('style', initialSpan.getAttribute('style') + ';min-height:calc(1/72*' + fontSize + 'in)');
     initialSpan.appendChild(initialBreak);
 
     const initialParagraph = document.createElement('div');
@@ -47,11 +44,6 @@ function testChangesDisplay() {
 
 }
 
-function controllerInsert(text, style, pos){
-    ropeInsertText(text, style, pos);
-    viewInsertText(text, style, pos);
-}
-
 function validateModelView() {
     let modelString = getFullString(ropeRoot);
     let viewString = '';
@@ -80,19 +72,16 @@ function validateModelView() {
 //inputHandling
 function handleTextInput(text, style, pos){
     text.split(/(\n|\v)/g).forEach(val => {
-        if (val === '\n'){
+        if (val === '\n')
             insertNewLine(pos);
-        }
-        else if (val === '\v'){
+        else if (val === '\v')
             insertLineBreak(pos);
-        }
         else if (val.length > 0)
             insertText(text, style, pos);
     })
 }
 function insertText(text, style, pos){
     let {added, removed} = ropeInsertText(text, style, pos);
-    //TODO: проверка на стиль в первом пункте
     if (removed.length > 0){
         let oldView = modelViewRelMap.get(removed[0]);
         let oldMod = modelViewRelMap.get(oldView);
@@ -101,30 +90,39 @@ function insertText(text, style, pos){
         modelViewRelMap.delete(removed[0]);
         let newArr = oldMod;
         let offset = added[0].getOffset();
-        if (oldView.textContent.length + text.length <= SPAN_SIZE_LIMIT){
+        if (style === removed[0].style && oldView.textContent.length + text.length <= SPAN_SIZE_LIMIT){
             newArr.splice(id, 1, added);
             appendToTextNode(oldView, pos - offset, text);
             modelViewRelMap.set(oldView, newArr);
             added.forEach(val => modelViewRelMap.set(val, oldView));
         }
         else {
-            let newView = createNewTextNode(oldView, null, null, false);
+            let newView = createNewTextNode(oldView, null, added[2].style, false);
             let newViewArr = [];
             removeFromTextNode(oldView, pos - offset, added[2].text.length);
-            if (oldView.textContent.length + text.length <= SPAN_SIZE_LIMIT){
+            if (style === removed[0].style && oldView.textContent.length + text.length <= SPAN_SIZE_LIMIT){
                 newArr.splice(id, 1, added[0], added[1]);
                 modelViewRelMap.set(oldView, newArr);
                 modelViewRelMap.set(added[0], oldView);
                 modelViewRelMap.set(added[1], oldView);
                 appendToTextNode(oldView, oldView.textContent.length, added[1].text);
             }
-            else {
+            else if (style === added[2].style){
                 newArr.splice(id, 1, added[0]);
                 modelViewRelMap.set(oldView, newArr);
                 modelViewRelMap.set(added[0], oldView);
                 modelViewRelMap.set(added[1], newView);
                 appendToTextNode(newView, 0, added[1].text);
                 newViewArr.push(added[1]);
+            }
+            else {
+                newArr.splice(id, 1, added[0]);
+                modelViewRelMap.set(oldView, newArr);
+                modelViewRelMap.set(added[0], oldView);
+
+                let newNewView = createNewTextNode(oldView, added[1], style, false, false);
+                modelViewRelMap.set(newNewView, [added[1]]);
+                modelViewRelMap.set(added[1], newNewView);
             }
             appendToTextNode(newView, newView.textContent.length, added[2].text);
             newViewArr.push(added[2]);
@@ -136,7 +134,7 @@ function insertText(text, style, pos){
         let prevEl = added[0].prevTextNode();
         let nextEl = added[0].nextTextNode();
         let done = false;
-        if (prevEl /*&& !prevEl.text.match(/(\n|\v)/g)*/ && (prevEl.style || []).join(',') === (style || []).join(',')){
+        if (prevEl && prevEl.style === style){
             let view = modelViewRelMap.get(prevEl);
             if (view.textContent.length + text.length <= SPAN_SIZE_LIMIT){
                 let viewNodes = modelViewRelMap.get(view);
@@ -151,7 +149,7 @@ function insertText(text, style, pos){
                 done = true;
             }
         }
-        if (!done /*&& nextEl && !nextEl.text.match(/(\n|\v)/g)*/ && (nextEl.style || []).join(',') === (style || []).join(',')){
+        if (!done && nextEl.style  === style){
             let view = modelViewRelMap.get(nextEl);
             if (view.textContent.length + text.length <= SPAN_SIZE_LIMIT) {
                 let viewNodes = modelViewRelMap.get(view);
@@ -171,20 +169,62 @@ function insertText(text, style, pos){
             let prevView = modelViewRelMap.get(prevEl);
             let nextView = modelViewRelMap.get(nextEl);
 
-            if (prevView === nextView){
+
+            if (nextEl && (nextEl.text === '\n' || nextEl.text === '\v')){
+                const nextEls = modelViewRelMap.get(nextView);
+                if (nextEls.length === 1){
+                    clearFormatting(nextView);
+                    appendToTextNode(nextView, 0, text);
+                    nextEls.unshift(added[0]);
+                    if (style)
+                        styleStringToArr(style)
+                            .forEach(val => applyFormattingToElement(nextView, val.code, val.value));
+                    modelViewRelMap.set(nextView, nextEls);
+                    modelViewRelMap.set(added[0], nextView);
+                }
+                else{
+                    newView = createNewTextNode(nextView, text, style, false, false);
+                    const br = nextEls.pop();
+                    const lastChild = nextView.lastChild;
+                    lastChild.remove();
+                    newView.appendChild(lastChild);
+
+                    modelViewRelMap.set(nextView, nextEls);
+                    modelViewRelMap.set(newView, [added[0], br]);
+                    modelViewRelMap.set(added[0], newView);
+                    modelViewRelMap.set(br, newView);
+                }
+                nextEl.style = style;
+            }
+            else if (prevView === nextView){
                 const viewEls = modelViewRelMap.get(prevView);
                 const id = viewEls.findIndex(val => val === nextEl);
                 const [first, second] = splitString(prevView.textContent, pos - viewEls[0].getOffset());
                 const lastParts = viewEls.splice(id, viewEls.length - id);
-                lastParts.unshift(added[0]);
-                newView = createNewTextNode(prevView, null, style, false);
-                removeFromTextNode(prevView, first.length, second.length);
-                appendToTextNode(newView , 0, added[0].text + second);
 
-                modelViewRelMap.set(prevView, viewEls)
-                modelViewRelMap.set(newView, lastParts);
-                viewEls.forEach(val => modelViewRelMap.set(val, prevView));
-                lastParts.forEach(val => modelViewRelMap.set(val, newView));
+                if (prevEl.style === style){
+                    viewEls.push(added[0]);
+                    newView = createNewTextNode(prevView, null, style, true);
+                    removeFromTextNode(prevView, 0, first.length);
+                    appendToTextNode(newView , 0, first + added[0].text);
+
+                    modelViewRelMap.set(prevView, lastParts)
+                    modelViewRelMap.set(newView, viewEls);
+                    viewEls.forEach(val => modelViewRelMap.set(val, newView));
+                    lastParts.forEach(val => modelViewRelMap.set(val, prevView));
+                }
+                else {
+                    let newNewView = createNewTextNode(prevView, added[0], style, true);
+                    newView = createNewTextNode(newNewView, first, prevEl.style, true);
+                    removeFromTextNode(prevView, 0, first.length);
+
+                    modelViewRelMap.set(newView, viewEls)
+                    modelViewRelMap.set(newNewView, [added[0]]);
+                    modelViewRelMap.set(prevView, lastParts);
+                    viewEls.forEach(val => modelViewRelMap.set(val, newView));
+                    modelViewRelMap.set(added[0], newNewView);
+                    lastParts.forEach(val => modelViewRelMap.set(val, prevView));
+                }
             }
             else {
                 if (prevEl)
@@ -440,6 +480,26 @@ function deleteText(pos, length){
 
 function changeFormatting(pos, length, style){
 
+}
+
+
+function applyFormattingToElement(el, styleCode, value){
+    switch (parseInt(styleCode)){
+        case STYLE_CODES.BOLD : changeElementClass(el, 'bold', parseInt(value)); break;
+        case STYLE_CODES.ITALIC : changeElementClass(el, 'italic', parseInt(value)); break;
+        case STYLE_CODES.UNDERLINE : changeElementClass(el, 'underline', parseInt(value)); break;
+        case STYLE_CODES.STRIKETHROUGH : changeElementClass(el, 'strikethrough', parseInt(value)); break;
+    }
+}
+
+function clearFormatting(el){
+    el.removeAttribute('style');
+    el.removeAttribute('class');
+}
+
+function changeElementClass(el, targetClass, enabled){
+    el.classList.remove(targetClass);
+    if (enabled === 1) el.classList.add(targetClass);
 }
 
 //util

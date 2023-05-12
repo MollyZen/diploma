@@ -72,6 +72,10 @@ body {
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
+.editor-button.active {
+    background-color: wheat;
+}
+
 .buttons-with-input {
     display: inline-block;
 }
