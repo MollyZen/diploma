@@ -5,12 +5,13 @@ let strikethrough = false;
 let fontSize = 11;
 let font = 'Arial';
 
+const fontCodes = new Map();
 const enabledStyles = new Map();
 
 function toolbarSetup() {
     const userAction = async () => {
         const response = await fetch('/rest/getUsername');
-        const res = await response.text(); //extract JSON from the http response
+        const res = await response.text();
         $('#firstName').text(res);
         var firstName = $('#firstName').text();
         var lastName = $('#lastName').text();
@@ -71,19 +72,49 @@ function toolbarSetup() {
         }
     });
 
+
+    const userAction1 = async () => {
+        const response = await fetch('/rest/fontCodes');
+        const obj = await response.json()
+        const fontEl = document.getElementById('font');
+        const nextSibling = fontEl.nextElementSibling;
+        for (let key in obj){
+            let value = obj[key];
+            const liEl = document.createElement('li');
+            const div = document.createElement('div');
+            div.setAttribute('class', 'option');
+            div.appendChild(document.createTextNode(value));
+            liEl.appendChild(div);
+
+            liEl.addEventListener('click', () => {
+                var currentele = $(liEl).html();
+                const wrap = $(liEl).parents(".select_wrap");
+                wrap.children("ul .default_option").html(currentele);
+                wrap.removeClass("active");
+            })
+
+            if (key === '0' || key === 0) {
+                fontEl.appendChild(liEl.cloneNode(true));
+                font = parseInt(key);
+            }
+            fontCodes.set(parseInt(key), value);
+            fontCodes.set(value, parseInt(key));
+            nextSibling.appendChild(liEl);
+        }
+    }
+    userAction1.apply();
+
     $(".default_option").click(function () {
         $(this).parent().toggleClass("active");
     })
 
-    $(".select_ul li").click(function () {
-        var currentele = $(this).html();
-        const wrap = $(this).parents(".select_wrap");
-        wrap.children("ul .default_option").html(currentele);
-        wrap.removeClass("active");
-    })
-
     const regex = /^[0-9]+$/;
 
+    enabledStyles.set(STYLE_CODES.FONT, font);
+    $("#font").on('DOMSubtreeModified', function (){
+        font = fontCodes.get($(this).children("div .option").text().trim());
+        enabledStyles.set(STYLE_CODES.FONT, font);
+    });
     $("#zoom").on('DOMSubtreeModified', function () {
         const val = Number($(this).children("div .option").text().replace('%', '').trim()) / 100.;
         const pane = $("#pane");
@@ -123,20 +154,22 @@ function toolbarSetup() {
         }
     });
 
-    var last_value = 11;
-    $("#font-size-input").val(last_value);
+    $("#font-size-input").val(fontSize);
+    enabledStyles.set(STYLE_CODES.FONT_SIZE, fontSize);
 
     //handling button entry for font size
     $("#font-size-minus").click(function () {
         var val = clamp($("#font-size-input").val() - 1, 1, 400)
         $("#font-size-input").val(val);
-        last_value = val;
+        fontSize = val;
+        enabledStyles.set(STYLE_CODES.FONT_SIZE, fontSize);
     })
 
     $("#font-size-plus").click(function () {
         var val = clamp(Number($("#font-size-input").val()) + 1, 1, 400)
         $("#font-size-input").val(val);
-        last_value = val
+        fontSize = val;
+        enabledStyles.set(STYLE_CODES.FONT_SIZE, fontSize);
     })
 
     $("#font-size-input").keydown(function (event) {
@@ -152,11 +185,16 @@ function toolbarSetup() {
     //handling manual entry for font size
     $("#font-size-input").blur(function () {
         var val = $("#font-size-input").val();
-        if (val === "")
-            $("#font-size-input").val(last_value);
+        if (val === "") {
+            $("#font-size-input").val(fontSize);
+            enabledStyles.set(STYLE_CODES.FONT_SIZE, fontSize);
+        }
         else
             $("#font-size-input").val(parseInt(val, 10));
-        $("#font-size-input").val(clamp(Number(val), 1, 400));
+        val = clamp(Number(val), 1, 400);
+        $("#font-size-input").val(val);
+        fontSize = val;
+        enabledStyles.set(STYLE_CODES.FONT_SIZE, fontSize);
     });
 
     const banner = document.getElementById("banner");

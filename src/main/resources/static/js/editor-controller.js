@@ -489,6 +489,9 @@ function applyFormattingToElement(el, styleCode, value){
         case STYLE_CODES.ITALIC : changeElementClass(el, 'italic', parseInt(value)); break;
         case STYLE_CODES.UNDERLINE : changeElementClass(el, 'underline', parseInt(value)); break;
         case STYLE_CODES.STRIKETHROUGH : changeElementClass(el, 'strikethrough', parseInt(value)); break;
+        case STYLE_CODES.FONT : changeFont(el, parseInt(value)); break;
+        case STYLE_CODES.FONT_COLOUR : break;
+        case STYLE_CODES.FONT_SIZE : changeFontSize(el, parseInt(value));
     }
 }
 
@@ -500,6 +503,14 @@ function clearFormatting(el){
 function changeElementClass(el, targetClass, enabled){
     el.classList.remove(targetClass);
     if (enabled === 1) el.classList.add(targetClass);
+}
+
+function changeFont(el, fontCode){
+    el.style.fontFamily = fontCodes.get(fontCode);
+}
+
+function changeFontSize(el, size){
+    el.style.fontSize = size + 'pt';
 }
 
 //util
