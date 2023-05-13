@@ -115,10 +115,10 @@ function processChanges(messageId, obj) {
         let remainingText = split[2];
 
         let formatting = [];
-        split[1].match(/[+\-*=][0-9]+/g).forEach(val => {
+        split[1].match(/([+\-=]|\*[0-9]+:)[0-9]+/g).forEach(val => {
             let numValue = parseInt(val.slice(1));
             if (val.match(/\*[0-9]+/))
-                formatting.push(val); //TODO: сделать что-то с обработкой списка
+                formatting.push(val.slice(1));
             else if (val.match(/=[0-9]+/)) {
                 if (formatting.length > 0) {
                     changeFormatting();
@@ -131,7 +131,7 @@ function processChanges(messageId, obj) {
             }
             else if (val.match(/\+[0-9]+/)) {
                 let [first, second] = splitString(remainingText, numValue)
-                handleTextInput(first, formatting, start + movedPos);
+                handleTextInput(first, formatting.join(' '), start + movedPos);
                 remainingText = second;
                 movedPos += numValue;
                 formatting = [];
