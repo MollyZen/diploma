@@ -33,8 +33,10 @@ public class Transformer {
     synchronized public DocumentChange applyChanges(DocumentChange changes){
         DocumentChange transformed = null;
         transformed = parse(changes);
-        accessPoint.insertChanges(transformed);
-        ++revision;
+        if (transformed != null) {
+            accessPoint.insertChanges(transformed);
+            ++revision;
+        }
 
         return transformed;
     }
@@ -71,7 +73,7 @@ public class Transformer {
                     .forEach(e -> {
                         switch (e.getToken()) {
                             case AllowedTokens.CHAR_ADDED -> {
-                                builder.insert(mainPointer.get(), text.substring(subPointer.get(), e.getValue()));
+                                builder.insert(mainPointer.get(), text.substring(subPointer.get(), subPointer.get() + e.getValue()));
                                 subPointer.addAndGet(e.getValue());
                                 mainPointer.addAndGet(e.getValue());
                             }
@@ -91,11 +93,13 @@ public class Transformer {
         ParsedChanges transformed = parseChanges(changes);
         if (revision - changes.getRevision() > 0) {
             prevChanges = accessPoint.getChangesFrom(changes.getRevision());
-            for (DocumentChange prevChange : prevChanges)
+            for (DocumentChange prevChange : prevChanges) {
                 transformed = transform(transformed, prevChange);
+                if (transformed.getTokens().size() == 0) break;
+            }
         }
         transformed.setRevision(revision + 1);
-        return transformed.toDocumentChange();
+        return transformed.getTokens().size() > 0 ? transformed.toDocumentChange() : null;
     }
 
     private ParsedChanges transform(ParsedChanges changes, DocumentChange prevChanges){
@@ -106,19 +110,143 @@ public class Transformer {
         ParsedChanges prevParsed = parseChanges(prevChanges);
 
         Integer affectedStart = changes.getStart();
-        long affectedEnd = changes.getStart() + changes.getLength();
+        long affectedEnd = changes.getStart() + Math.abs(changes.getLength());
 
         Integer prevAffectedStart = prevParsed.getStart();
-        long prevAffectedEnd = prevParsed.getStart() + prevParsed.getLength();
+        long prevAffectedEnd = prevParsed.getStart() + Math.abs(prevParsed.getLength());
 
+        //new changes fully before old ones
         if (affectedStart < prevAffectedStart && affectedEnd < prevAffectedStart){
-            return changes;
+            transformed.setStart(changes.getStart());
+            transformed.setText(changes.getText());
+            transformed.setLength(changes.getLength());
+            transformed.setTokens(changes.getTokens());
         }
+        //new changes fully after old ones
         else if (affectedStart > prevAffectedEnd){
-            transformed.setStart(changes.getStart() + prevParsed.getCharLengthChange());
+            transformed.setStart(changes.getStart() + prevParsed.getLength());
+            transformed.setText(changes.getText());
+            transformed.setLength(changes.getLength());
+            transformed.setTokens(changes.getTokens());
         }
-        else {
+        else{
+            List<Pair<FormattedToken, List<FormattedToken>>> resChanges = new ArrayList<>();
+            List<Pair<FormattedToken, List<FormattedToken>>> newChanges = changes.getGroupedTokens();
+            List<Pair<FormattedToken, List<FormattedToken>>> oldChanges = prevParsed.getGroupedTokens();
 
+            Integer pos = changes.getStart();
+            Integer oldPos = prevParsed.getStart();
+            while (newChanges.size() > 0){
+                Pair<FormattedToken, List<FormattedToken>> tokenGr = newChanges.get(0);
+                boolean keepToken = true;
+                while (oldChanges.size() > 0 && (oldPos <= pos || oldPos < pos + tokenGr.getFirst().getValue())){
+                    Pair<FormattedToken, List<FormattedToken>> oldTokenGr = oldChanges.get(0);
+
+                    int oldSt = oldPos;
+                    int oldEnd = oldPos + oldTokenGr.getFirst().getValue();
+                    int newSt = pos;
+                    int newEnd = pos + tokenGr.getFirst().getValue();
+
+                    if (newSt != oldSt || newEnd != oldEnd){
+                        if (oldTokenGr.getFirst().getToken().equals(AllowedTokens.CHAR_ADDED)){
+                            if (newSt != oldSt){
+                                int firstVal = oldSt - newSt;
+                                if (firstVal > 0){
+                                    newChanges.remove(0);
+                                    newChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), firstVal, null), tokenGr.getSecond()));
+                                    newChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), tokenGr.getFirst().getValue() - firstVal, null), tokenGr.getSecond()));
+                                    continue;
+                                }
+                            }
+                        }
+                        else {
+                            newChanges.remove(0);
+                            oldChanges.remove(0);
+                            //handling current changes
+                            int curVal = tokenGr.getFirst().getValue();
+                            if (curVal > 0 && newEnd > oldEnd) {
+                                curVal -= newEnd - oldEnd;
+                                newChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), newEnd - oldEnd, null), tokenGr.getSecond()));
+                            }
+                            if (curVal > 0 && newSt < oldSt) {
+                                curVal -= oldSt - newSt;
+                                if (curVal > 0) {
+                                    newChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), curVal, null), tokenGr.getSecond()));
+                                }
+                                newChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), oldSt - newSt, null), tokenGr.getSecond()));
+                            }
+
+                            //handling old changes
+                            int oldVal = oldTokenGr.getFirst().getValue();
+                            if (oldVal > 0 && oldEnd > newEnd) {
+                                oldVal -= oldEnd - newEnd;
+                                oldChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), oldEnd - newEnd, null), tokenGr.getSecond()));
+                            }
+                            if (oldVal > 0 && oldSt < newSt) {
+                                oldVal -= newSt - oldSt;
+                                if (oldVal > 0) {
+                                    oldChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), oldVal, null), tokenGr.getSecond()));
+                                }
+                                oldChanges.add(0, Pair.of(new FormattedToken(tokenGr.getFirst().getToken(), newSt - oldSt, null), tokenGr.getSecond()));
+                            }
+
+                            //res
+                            tokenGr = newChanges.get(0);
+                            continue;
+                        }
+                    }
+
+                    if (oldTokenGr.getFirst().getToken().equals(AllowedTokens.CHAR_KEPT)){
+                        oldPos += oldTokenGr.getFirst().getValue();
+                    }
+                    else if (tokenGr.getFirst().getToken().equals(AllowedTokens.CHAR_KEPT)){
+                        if (oldTokenGr.getFirst().getToken().equals(AllowedTokens.CHAR_ADDED)) {
+                            //shift
+                            resChanges.add(
+                                    Pair.of(new FormattedToken(AllowedTokens.CHAR_KEPT, oldTokenGr.getFirst().getValue(),  null),
+                                            oldTokenGr.getSecond()));
+                        }
+                        else {
+                            //cancel
+                            keepToken = false;
+                        }
+                    }
+                    else if (tokenGr.getFirst().getToken().equals(AllowedTokens.CHAR_REMOVED)) {
+                        if (oldTokenGr.getFirst().getToken().equals(AllowedTokens.CHAR_ADDED)) {
+                            //shift
+                            resChanges.add(
+                                    Pair.of(new FormattedToken(AllowedTokens.CHAR_KEPT, oldTokenGr.getFirst().getValue(),  null),
+                                            oldTokenGr.getSecond()));
+                        }
+                        else {
+                            //cancel
+                            keepToken = false;
+                        }
+                    }
+                    else {
+                        //shift
+                        resChanges.add(
+                                Pair.of(new FormattedToken(AllowedTokens.CHAR_KEPT, oldTokenGr.getFirst().getValue(),  null),
+                                        oldTokenGr.getSecond()));
+                    }
+                    oldChanges.remove(0);
+                }
+                if (keepToken) resChanges.add(tokenGr);
+                newChanges.remove(0);
+            }
+
+            List<FormattedToken> unwinded = new ArrayList<>();
+            AtomicInteger length = new AtomicInteger(0);
+            resChanges.forEach(val -> {
+                unwinded.addAll(val.getSecond());
+                unwinded.add(val.getFirst());
+                if (!val.getFirst().getToken().equals(AllowedTokens.CHAR_KEPT)) length.addAndGet(val.getFirst().getValue());
+            });
+
+            transformed.setStart(changes.getStart());
+            transformed.setText(changes.getText());
+            transformed.setLength(changes.getLength());
+            transformed.setTokens(unwinded);
         }
 
         return transformed;

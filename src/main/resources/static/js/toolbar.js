@@ -33,7 +33,6 @@ function toolbarSetup() {
            $(this).addClass('active');
        }
     });
-
     $("#italic-button").click(function () {
         if (italic){
             italic = false;
@@ -96,6 +95,7 @@ function toolbarSetup() {
             if (key === '0' || key === 0) {
                 fontEl.appendChild(liEl.cloneNode(true));
                 font = parseInt(key);
+                enabledStyles.set(STYLE_CODES.FONT, font);
             }
             fontCodes.set(parseInt(key), value);
             fontCodes.set(value, parseInt(key));
@@ -110,11 +110,16 @@ function toolbarSetup() {
 
     const regex = /^[0-9]+$/;
 
-    enabledStyles.set(STYLE_CODES.FONT, font);
     $("#font").on('DOMSubtreeModified', function (){
         font = fontCodes.get($(this).children("div .option").text().trim());
         enabledStyles.set(STYLE_CODES.FONT, font);
     });
+    $(".select_wrap .select_ul li").click(function () {
+        var currentele = $(this).html();
+        const wrap = $(this).parents(".select_wrap");
+        wrap.children("ul .default_option").html(currentele);
+        wrap.removeClass("active");
+    })
     $("#zoom").on('DOMSubtreeModified', function () {
         const val = Number($(this).children("div .option").text().replace('%', '').trim()) / 100.;
         const pane = $("#pane");
@@ -242,7 +247,7 @@ function getEnabledStylesString(){
 }
 
 function styleStringToArr(style){
-    return style.split(' ').map(val => {
+    return (style ?? '').split(' ').map(val => {
         return {code : val.split(':')[0], value : val.split(':')[1]};
     }) ?? [];
 }

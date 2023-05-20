@@ -1,8 +1,10 @@
 package ru.saltykov.diploma.editing;
 
 import lombok.Data;
+import org.springframework.data.util.Pair;
 import ru.saltykov.diploma.messages.DocumentChange;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,7 +15,6 @@ public class ParsedChanges {
     private Integer start;
     private Integer length;
     private List<FormattedToken> tokens;
-    private List<FormattedToken> negatedTokens;
     private String text;
 
     public DocumentChange toDocumentChange(){
@@ -35,5 +36,19 @@ public class ParsedChanges {
                     else return e.getValue();
                 })
                 .sum();
+    }
+
+    public List<Pair<FormattedToken, List<FormattedToken>>> getGroupedTokens() {
+        List<Pair<FormattedToken, List<FormattedToken>>>res = new ArrayList<>();
+        List<FormattedToken> formatting = new ArrayList<>();
+        for (FormattedToken token : tokens) {
+            if (token.getToken().matches("[=\\-+]")){
+                res.add(Pair.of(token, formatting));
+                formatting = new ArrayList<>();
+            }
+            else
+                formatting.add(token);
+        }
+        return res;
     }
 }

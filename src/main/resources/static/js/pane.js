@@ -19,9 +19,11 @@ function setPane(newPane) {
         //toggleTooltip(e, pane);
     })
     pane.addEventListener('keyup', function (ev) {
-        const caret = getViewCaretIndex();
-        userCaret = caret;
-        console.log('caret position: ' + caret);
+        if (ev.key.match(/Arrow.*/)) {
+            const caret = getViewCaretIndex();
+            userCaret = caret;
+            console.log('caret position: ' + caret);
+        }
     })
     pane.addEventListener('keydown', function (ev){
         if (ev.key === 'Backspace'){
@@ -65,8 +67,28 @@ function setPane(newPane) {
             }
             else {
                 handleTextInput('\v', null, start);
-                changes.addText('\n', null);
+                changes.addText('\v', null);
             }
+
+            lastPositionChangeStart = start;
+            lastPositionChangeLength = 1;
+
+            submitChanges(changes);
+            pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
+        }
+        else if (ev.key === 'Tab'){
+            ev.preventDefault();
+            const [start, end] = getViewCaretStartEnd();
+            userCaret = start;
+            const changes = new Changes(curUser, curRev, start);
+
+            let deletedText = '';
+            if (end > start) {
+                deletedText = deleteText(start, end - start);
+                changes.removeText(end - start, deletedText)
+            }
+            handleTextInput('\t', null, start);
+            changes.addText('\t', null);
 
             lastPositionChangeStart = start;
             lastPositionChangeLength = 1;

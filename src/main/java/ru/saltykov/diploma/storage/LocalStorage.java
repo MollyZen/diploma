@@ -46,6 +46,11 @@ public class LocalStorage implements DataStorage{
     }
 
     @Override
+    public void updateFile(String fileId, String data) {
+
+    }
+
+    @Override
     public InputStream getFile(String filePath) {
         return null;
     }

@@ -73,6 +73,8 @@ function handleTextInput(text, style, pos){
             insertNewLine(pos);
         else if (val === '\v')
             insertLineBreak(pos);
+        else if (val === '\t')
+            insertTab(pos);
         else if (val.length > 0)
             insertText(text, style, pos);
     })
@@ -411,6 +413,80 @@ function insertLineBreak(pos){
     }
 }
 
+function insertTab(pos){
+    let {added, removed} = ropeInsertText('\t', null, pos);
+    if (removed.length > 0) {
+        const view = modelViewRelMap.get(removed[0]);
+        const viewEls = modelViewRelMap.get(view);
+
+        const newTextNode = createNewTextNode(view, null, null, true, false);
+
+        const id = viewEls.findIndex(val => val === removed[0]);
+        viewEls.splice(id, 1);
+        const lastEls = viewEls.splice(id, viewEls.length - id);
+        viewEls.push(added[0]);
+        lastEls.unshift(added[2]);
+
+        const [first, second] = splitString(view.textContent, pos - added[0].getOffset());
+        appendToTextNode(newTextNode, 0, first);
+        removeFromTextNode(view, 0, first.length);
+
+        const pre = document.createElement('pre');
+        pre.setAttribute('class', 'tab');
+        pre.appendChild(document.createTextNode('\t'));
+        view.after(pre);
+
+        viewEls.forEach(val => modelViewRelMap.set(val, newTextNode));
+        lastEls.forEach(val => modelViewRelMap.set(val, view));
+        modelViewRelMap.delete(removed[0]);
+        modelViewRelMap.set(newTextNode, viewEls);
+        modelViewRelMap.set(view, lastEls);
+        modelViewRelMap.set(pre, [added[1]]);
+        modelViewRelMap.set(added[1], pre)
+    }
+    else {
+        let prevEl = added[0].prevTextNode();
+        let nextEl = added[0].nextTextNode();
+
+        const prevView = modelViewRelMap.get(prevEl);
+        const prevViewEls = modelViewRelMap.get(prevView);
+
+        const nextView = modelViewRelMap.get(nextEl);
+
+        if (prevView === nextView){
+            const newTextNode = createNewTextNode(prevView, null, null, true, false);
+
+            const id = prevViewEls.findIndex(val => val === prevEl);
+            const lastEls = prevViewEls.splice(id + 1, prevViewEls.length - id - 1);
+
+            const [first, second] = splitString(prevView.textContent, pos - (prevViewEls.length > 0 ? prevViewEls[0].getOffset() : 0));
+            appendToTextNode(newTextNode, 0, first);
+            removeFromTextNode(prevView, 0, first.length);
+
+            const pre = document.createElement('pre');
+            pre.setAttribute('class', 'tab');
+            pre.appendChild(document.createTextNode('\t'));
+            prevView.after(pre);
+
+            prevViewEls.forEach(val => modelViewRelMap.set(val, newTextNode));
+            modelViewRelMap.set(added[0], pre);
+            modelViewRelMap.set(pre, [added[0]]);
+            modelViewRelMap.set(prevView, lastEls);
+            modelViewRelMap.set(newTextNode, prevViewEls);
+        }
+        else {
+            const pre = document.createElement('pre');
+            pre.setAttribute('class', 'tab');
+            pre.appendChild(document.createTextNode('\t'));
+            if (prevView) prevView.after(pre);
+            else nextView.before(pre);
+
+            modelViewRelMap.set(pre, [added[0]]);
+            modelViewRelMap.set(added[0], pre);
+        }
+    }
+}
+
 function deleteText(pos, length){
     let changed = ropeDeleteText(pos, length); // {el, before}
 
@@ -484,8 +560,8 @@ function applyFormattingToElement(el, styleCode, value){
     switch (parseInt(styleCode)){
         case STYLE_CODES.BOLD : changeElementClass(el, 'bold', parseInt(value)); break;
         case STYLE_CODES.ITALIC : changeElementClass(el, 'italic', parseInt(value)); break;
-        case STYLE_CODES.UNDERLINE : changeElementClass(el, 'underline', parseInt(value)); break;
-        case STYLE_CODES.STRIKETHROUGH : changeElementClass(el, 'strikethrough', parseInt(value)); break;
+        case STYLE_CODES.UNDERLINE : changeElementDecoration(el, 'underline', parseInt(value)); break;
+        case STYLE_CODES.STRIKETHROUGH : changeElementDecoration(el, 'line-through', parseInt(value)); break;
         case STYLE_CODES.FONT : changeFont(el, parseInt(value)); break;
         case STYLE_CODES.FONT_COLOUR : break;
         case STYLE_CODES.FONT_SIZE : changeFontSize(el, parseInt(value));
@@ -500,6 +576,11 @@ function clearFormatting(el){
 function changeElementClass(el, targetClass, enabled){
     el.classList.remove(targetClass);
     if (enabled === 1) el.classList.add(targetClass);
+}
+
+function changeElementDecoration(el, decoration, enabled) {
+    el.style.textDecoration = el.style.textDecoration ? el.style.textDecoration.replace(decoration, '') : '';
+    if (enabled === 1) el.style.textDecoration = el.style.textDecoration + ' ' + decoration;
 }
 
 function changeFont(el, fontCode){

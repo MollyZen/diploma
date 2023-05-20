@@ -14,7 +14,6 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.editing.Transformer;
-import ru.saltykov.diploma.messages.CollaborationMessage;
 import ru.saltykov.diploma.messages.DocumentChange;
 import ru.saltykov.diploma.messages.CollaborationMessageWrapper;
 import ru.saltykov.diploma.storage.DataStorage;
@@ -63,6 +62,7 @@ public class TestController {
                     return;
                 }
                 ObjectMapper mapper = new ObjectMapper();
+                transformer.insertText();
                 CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
                 wrapper.setType("CHANGES");
                 wrapper.setMessage(change);

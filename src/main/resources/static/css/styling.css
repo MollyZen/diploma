@@ -1,5 +1,6 @@
-:root {
-    --pt: calc(1in / 72);
+pre{
+    display: inline;
+    margin: 0;
 }
 
 .bold {
