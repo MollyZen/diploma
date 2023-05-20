@@ -28,9 +28,6 @@ function initController() {
 
 function testChangesDisplay() {
 
-    //ropeRoot.deleteLeft();
-    //ropeRoot.deleteRight();
-
     handleTextInput('govno ', null, 0);
     handleTextInput('zhopa ', null, 0);
     handleTextInput('suka ', null, 0);
@@ -91,7 +88,7 @@ function insertText(text, style, pos){
         let newArr = oldMod;
         let offset = added[0].getOffset();
         if (style === removed[0].style && oldView.textContent.length + text.length <= SPAN_SIZE_LIMIT){
-            newArr.splice(id, 1, added);
+            newArr.splice(id, 1, ...added);
             appendToTextNode(oldView, pos - offset, text);
             modelViewRelMap.set(oldView, newArr);
             added.forEach(val => modelViewRelMap.set(val, oldView));
@@ -214,7 +211,7 @@ function insertText(text, style, pos){
                     lastParts.forEach(val => modelViewRelMap.set(val, prevView));
                 }
                 else {
-                    let newNewView = createNewTextNode(prevView, added[0], style, true);
+                    let newNewView = createNewTextNode(prevView, added[0].text, style, true);
                     newView = createNewTextNode(newNewView, first, prevEl.style, true);
                     removeFromTextNode(prevView, 0, first.length);
 
@@ -534,6 +531,11 @@ function getViewCaretStartEnd(){
         const preCaretRange = range.cloneRange();
         let start = preCaretRange.startContainer;
         let end = preCaretRange.endContainer;
+
+        if (start.tagName === 'BR')
+            start = start.parentElement;
+        if (end.tagName === 'BR')
+            end = end.parentElement;
 
         return [
             getOffsetForElement(start, range.startOffset),
