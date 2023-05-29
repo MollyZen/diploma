@@ -13,9 +13,9 @@ function setPane(newPane) {
     pane = newPane;
     //mouse
     pane.addEventListener('click', (e) => {
-        const caret = getViewCaretIndex();
-        userCaret = caret;
-        console.log('caret position: ' + caret);
+        const [start, end] = getViewCaretStartEnd();
+        userCaret = start;
+        console.log('caret position: ' + start);
         //toggleTooltip(e, pane);
     })
     pane.addEventListener('keyup', function (ev) {

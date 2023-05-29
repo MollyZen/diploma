@@ -615,8 +615,13 @@ function getViewCaretStartEnd(){
 
         if (start.tagName === 'BR')
             start = start.parentElement;
+        else if (start.tagName === 'DIV')
+            start = start.firstChild;
+
         if (end.tagName === 'BR')
             end = end.parentElement;
+        else if (end.tagName === 'DIV')
+            end = end.lastChild;
 
         return [
             getOffsetForElement(start, range.startOffset),
