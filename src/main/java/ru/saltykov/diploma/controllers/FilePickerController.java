@@ -1,12 +1,13 @@
 package ru.saltykov.diploma.controllers;
 
 import io.micrometer.core.instrument.util.IOUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import ru.saltykov.diploma.rest.FileController;
@@ -21,6 +22,12 @@ import java.nio.file.Path;
 public class FilePickerController {
     @Autowired
     FileController fileController;
+
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public void method(HttpServletResponse httpServletResponse) {
+        httpServletResponse.setHeader("Location", "/file-picker");
+        httpServletResponse.setStatus(302);
+    }
 
     @GetMapping("/new-file")
     public RedirectView newFile(RedirectAttributes attributes) throws Exception{
