@@ -1,5 +1,7 @@
 package ru.saltykov.diploma.storage;
 
+import ru.saltykov.diploma.config.StaticResourceConfiguration;
+
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -13,7 +15,7 @@ import java.util.UUID;
 
 public class LocalStorage implements DataStorage{
 
-    String path = "C:\\Users\\MZ\\IdeaProjects\\diplomaNew\\files";
+    public static String path = StaticResourceConfiguration.homeDir + "\\files";
 
     final HashMap<UUID, File> files = new HashMap<>();
 
