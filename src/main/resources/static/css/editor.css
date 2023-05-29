@@ -10,7 +10,7 @@ body {
 #banner {
     display: flex;
     flex-direction: row;
-    background-color: coral;
+    background-color: steelblue;
     z-index: 2;
 }
 
@@ -180,7 +180,7 @@ body {
 }
 
 [contenteditable] {
-    outline: 0px solid transparent;
+    outline: 0 solid transparent;
 }
 
 .profileImage {
