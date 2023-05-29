@@ -164,6 +164,15 @@ function setPane(newPane) {
             }
         }
     })
+    pane.addEventListener('compositionstart', (ev) => {
+        ev.preventDefault();
+    })
+    pane.addEventListener('compositionupdate', (ev) => {
+        ev.preventDefault();
+    })
+    pane.addEventListener('compositionend', (ev) => {
+        ev.preventDefault();
+    })
 }
 
 const pageWidth = '210mm';
