@@ -1,5 +1,6 @@
 package ru.saltykov.diploma.editing;
 
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.data.util.Pair;
 import ru.saltykov.diploma.access.AccessPoint;
@@ -7,21 +8,21 @@ import ru.saltykov.diploma.messages.DocumentChange;
 import ru.saltykov.diploma.storage.DataStorage;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Transformer {
-    private AccessPoint accessPoint;
-    private DataStorage dataStorage;
-    private String fileId;
+    private final AccessPoint accessPoint;
+    private final DataStorage dataStorage;
+    @Getter
+    private final String fileId;
     private Long revision = 0L;
 
-    private List<Principal> users = new ArrayList<>();
+    private final Set<Principal> users = new HashSet<>();
+    private final Map<Principal, Integer> instancesCount = new HashMap<>();
 
     public Transformer(AccessPoint accessPoint, DataStorage dataStorage, String fileId) {
         this.accessPoint = accessPoint;
@@ -294,15 +295,24 @@ public class Transformer {
 
     public void addUser(Principal user){
         users.add(user);
+        Integer instances = this.instancesCount.get(user);
+        if (instances == null)
+            instances = 0;
+        ++instances;
+        this.instancesCount.put(user, instances);
         System.out.println("Connected users: " + users.stream().map(Principal::getName).collect(Collectors.joining(", ")));
     }
 
     public void removeUser(Principal user){
-        users.remove(user);
+        Integer cnt = this.instancesCount.get(user);
+        --cnt;
+        this.instancesCount.put(user, cnt);
+        if (cnt == 0)
+            users.remove(user);
         System.out.println("Connected users: " + users.stream().map(Principal::getName).collect(Collectors.joining(", ")));
     }
 
-    public List<Principal> getUsers(){
+    public Set<Principal> getUsers(){
         return users;
     }
 }
