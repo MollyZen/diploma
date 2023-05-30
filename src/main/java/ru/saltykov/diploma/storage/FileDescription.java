@@ -1,8 +1,8 @@
 package ru.saltykov.diploma.storage;
 
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import lombok.extern.jackson.Jacksonized;
 
 import java.io.File;
 import java.time.LocalDateTime;

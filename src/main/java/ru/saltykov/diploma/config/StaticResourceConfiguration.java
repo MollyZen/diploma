@@ -1,22 +1,12 @@
 package ru.saltykov.diploma.config;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.system.ApplicationHome;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.View;
-import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.view.AbstractCachingViewResolver;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
-import org.springframework.web.util.pattern.PathPattern;
 import ru.saltykov.diploma.DiplomaApplication;
 
 import java.io.File;
-import java.util.Locale;
-import java.util.Map;
 
 @Configuration
 public class StaticResourceConfiguration implements WebMvcConfigurer {
@@ -25,8 +15,8 @@ public class StaticResourceConfiguration implements WebMvcConfigurer {
             "classpath:/META-INF/resources/", "classpath:/resources/",
             "classpath:/static/", "classpath:/public/" };
 
-    ApplicationHome home = new ApplicationHome(DiplomaApplication.class);
-    String homeDir = home.getDir().toString();
+    public static ApplicationHome home = new ApplicationHome(DiplomaApplication.class);
+    public static String homeDir = home.getDir().toString();
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

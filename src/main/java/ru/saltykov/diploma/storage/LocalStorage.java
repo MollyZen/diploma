@@ -26,13 +26,10 @@ public class LocalStorage implements DataStorage{
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 String fileName = file.toFile().getName();
-                if (!fileName.toUpperCase().endsWith(".AMOGUS")){
-                    return FileVisitResult.CONTINUE;
-                }
-                else {
+                if (fileName.toUpperCase().endsWith(".COLLAB")) {
                     files.put(UUID.randomUUID(), file.toFile());
-                    return FileVisitResult.CONTINUE;
                 }
+                return FileVisitResult.CONTINUE;
             }
         });
     }
@@ -40,11 +37,11 @@ public class LocalStorage implements DataStorage{
     @Override
     public FileDescription createFile() throws IOException {
         UUID uuid = UUID.randomUUID();
-        File file = new File(path + File.separator + uuid);
+        File file = new File(path + File.separator + uuid + ".collab");
         file.createNewFile();
         files.put(uuid, file);
         LocalDateTime now = LocalDateTime.now();
-        return new FileDescription().created(now).lastModified(now).id(uuid).name(uuid.toString());
+        return new FileDescription().created(now).lastModified(now).id(uuid).name(uuid.toString() + ".collab");
     }
 
     @Override

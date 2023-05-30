@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+import ru.saltykov.diploma.config.StaticResourceConfiguration;
 import ru.saltykov.diploma.rest.FileController;
 import ru.saltykov.diploma.storage.FileDescription;
 
@@ -23,35 +23,26 @@ public class FilePickerController {
     @Autowired
     FileController fileController;
 
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public void method(HttpServletResponse httpServletResponse) {
-        httpServletResponse.setHeader("Location", "/file-picker");
-        httpServletResponse.setStatus(302);
+    @RequestMapping(value = "/")
+    public RedirectView method(HttpServletResponse httpServletResponse) {
+        return new RedirectView("/file-picker");
     }
 
     @GetMapping("/new-file")
     public RedirectView newFile(RedirectAttributes attributes) throws Exception{
         FileDescription desc = fileController.createFile();
-        /*attributes.addFlashAttribute("flashAttribute", "redirectWithRedirectView");
-        attributes.addAttribute("attribute", "redirectWithRedirectView");*/
         return new RedirectView("/file/" + desc.id() + "/edit");
     }
 
     @GetMapping(value = "/file-picker", produces = "text/html")
     @ResponseBody
     public String  pickFile() throws IOException {
-        /*ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("static/file-picker.html");
-        return modelAndView;*/
-        return IOUtils.toString(Files.newInputStream(Path.of("C:\\Users\\MollyZen\\IdeaProjects\\diploma\\src\\main\\resources\\static\\file-picker.html")));
+        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + "\\static\\file-picker.html")));
     }
 
     @GetMapping(value = "/file/{id}/edit", produces = "text/html")
     @ResponseBody
     public String editFile() throws IOException {
-        /*ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("");
-        return modelAndView;*/
-        return IOUtils.toString(Files.newInputStream(Path.of("C:\\Users\\MollyZen\\IdeaProjects\\diploma\\src\\main\\resources\\static\\editor.html")));
+        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + "\\static\\editor.html")));
     }
 }
