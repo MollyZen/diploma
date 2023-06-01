@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 public class InMemoryAccessPoint implements AccessPoint{
     final private HashMap<Long, DocumentChange> changesMap = new HashMap<>();
     final private TreeMap<Long, String> textMap = new TreeMap<>();
+    final private TreeMap<Long, ChatMessage> chatMap = new TreeMap<>();
+
     @Override
     public DocumentChange insertChanges(DocumentChange changes) {
         changesMap.put(changes.getRevision(), changes);
@@ -42,7 +44,17 @@ public class InMemoryAccessPoint implements AccessPoint{
     }
 
     @Override
+    public void addMessage(ChatMessage message) {
+
+    }
+
+    @Override
     public List<ChatMessage> getMessagesFrom(Long messageId) {
         return null;
+    }
+
+    @Override
+    public Integer getMessageHead() {
+        return changesMap.size();
     }
 }

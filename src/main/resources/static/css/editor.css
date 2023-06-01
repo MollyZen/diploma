@@ -18,6 +18,8 @@ body {
     display: flex;
     flex-direction: row;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+    align-items: center;
+    padding: 10px 10px;
 }
 
 .menubar {
@@ -35,7 +37,7 @@ body {
     align-items: center;
     flex-shrink: 0;
     display: flex;
-    padding-top: 10px;
+    /*padding-top: 10px;*/
 }
 
 .menuitem {
@@ -65,6 +67,8 @@ body {
 }
 
 .editor-button {
+    min-height: 25px;
+    min-width: 25px;
     background-color: transparent;
     cursor: pointer;
     /*border: 1px solid #ffffff;*/
@@ -94,7 +98,6 @@ body {
 .select_wrap {
     width: 10ch;
     height: 0;
-
     /*margin: 15px auto;*/
     position: relative;
     user-select: none;
@@ -117,6 +120,7 @@ body {
 
 .select_wrap .default_option li {
     /*padding: 10px 20px;*/
+    /*min-height: 30px;*/
 }
 
 .select_wrap .default_option:before {
@@ -192,7 +196,7 @@ body {
     color: #fff;
     text-align: center;
     line-height: 30px;
-    margin: 20px 0;
+    /*margin: 20px 0;*/
     cursor: pointer;
 }
 

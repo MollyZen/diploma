@@ -3,7 +3,7 @@ function createAndRedirect() {
         method: "GET",
     });
     request.redirect;*/
-    window.location.href = "http://localhost:8082/new-file"
+    window.location.href = "/new-file"
     /*window.location.replace("http://localhost:8082/new-file");*/
 }
 

@@ -24,16 +24,13 @@ public class StaticResourceConfiguration implements WebMvcConfigurer {
         if (homeDir.endsWith(File.separator + "classes"))
             homeDir = homeDir.replaceAll( "classes$", "");
 
-        String staticContentPath = "file:/" + homeDir + File.separator + "static" + File.separator;
+        String staticContentPath = "file:/" + (File.separator.equals("/") ? "/" : "") + homeDir + "static" + File.separator;
 
         registry.addResourceHandler("/**")
                 .addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
         registry.addResourceHandler("/static/**")
-                .addResourceLocations(staticContentPath/*,
-                        staticContentPath + "js" + File.separator,
-                        staticContentPath + "img" + File.separator,
-                        staticContentPath + "css" + File.separator*/
-                ).setCachePeriod(3600);
+                .addResourceLocations(staticContentPath)
+                .setCachePeriod(3600);
 
         registry.addResourceHandler("/webjars/**").addResourceLocations("/webjars/").resourceChain(false);
     }

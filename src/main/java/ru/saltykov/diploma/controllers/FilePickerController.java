@@ -13,6 +13,7 @@ import ru.saltykov.diploma.config.StaticResourceConfiguration;
 import ru.saltykov.diploma.rest.FileController;
 import ru.saltykov.diploma.storage.FileDescription;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,13 +37,13 @@ public class FilePickerController {
 
     @GetMapping(value = "/file-picker", produces = "text/html")
     @ResponseBody
-    public String  pickFile() throws IOException {
-        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + "\\static\\file-picker.html")));
+    public String pickFile() throws IOException {
+        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static" + File.separator + "file-picker.html")));
     }
 
     @GetMapping(value = "/file/{id}/edit", produces = "text/html")
     @ResponseBody
     public String editFile() throws IOException {
-        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + "\\static\\editor.html")));
+        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static"+ File.separator + "editor.html")));
     }
 }

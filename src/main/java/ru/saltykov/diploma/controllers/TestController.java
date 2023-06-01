@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.util.Pair;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -14,10 +15,9 @@ import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import ru.saltykov.diploma.access.AccessPoint;
+import ru.saltykov.diploma.config.StompPrincipal;
 import ru.saltykov.diploma.editing.Transformer;
-import ru.saltykov.diploma.messages.CollaborationMessageWrapper;
-import ru.saltykov.diploma.messages.DocumentChange;
-import ru.saltykov.diploma.messages.StatusUpdate;
+import ru.saltykov.diploma.messages.*;
 import ru.saltykov.diploma.storage.DataStorage;
 
 import java.security.Principal;
@@ -40,12 +40,19 @@ public class TestController {
     }
 
     @MessageMapping("/session/{docId}")
-    public void greeting(Message<?> message, Principal principal, @DestinationVariable("docId") String docId, @Payload CollaborationMessageWrapper payloadJson/*, @Payload String payload*/) throws Exception {
+    public void editingSession(Message<?> message, StompPrincipal principal, @DestinationVariable("docId") String docId, @Payload CollaborationMessageWrapper payloadJson) throws Exception {
         String type = payloadJson.getType();
         Transformer transformer = transformers.get(docId);
-        Set<Principal> users = transformer.getUsers();
+        Set<StompPrincipal> users = transformer.getUsers();
         switch (type){
-            case  "CHAT" : break;
+            case  "CHAT" : {
+                ChatMessage chatMessage = transformer.addMessage((ChatMessage)payloadJson.getMessage());
+                for (StompPrincipal user : transformer.getUsers()){
+                    template.convertAndSendToUser(user.getName(),
+                            "/queue/session/" + docId,
+                            toJson(chatMessage, "CHAT"));
+                }
+            }
             case  "CURSOR" : break;
             case  "CHANGES" : {
                 DocumentChange change;
@@ -59,8 +66,10 @@ public class TestController {
                     System.out.println("MESSAGE " + message.toString() + " DENIED");
                     return;
                 }
-                String json = documentChangeToJson(change);
-                for (Principal user : users) {
+                String json = toJson(change, "CHANGES");
+                transformer.insertText();
+                System.out.println(accessPoint.getLastText().getSecond());
+                for (StompPrincipal user : users) {
                     template.convertAndSendToUser(user.getName(),
                             "/queue/session/" + docId,
                             json,
@@ -80,6 +89,14 @@ public class TestController {
         return transformer.applyChanges(change);
     }
 
+    private String toJson(CollaborationMessage message, String type) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
+        wrapper.setType(type);
+        wrapper.setMessage(message);
+        return mapper.writeValueAsString(wrapper);
+    }
+
     private String documentChangeToJson(DocumentChange change) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
@@ -96,6 +113,14 @@ public class TestController {
         return mapper.writeValueAsString(wrapper);
     }
 
+    private String chatMessageToJson(ChatMessage message) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
+        wrapper.setType("CHAT");
+        wrapper.setMessage(message);
+        return mapper.writeValueAsString(wrapper);
+    }
+
     private String extractMessageId(Message<?> message){
         return ((List<?>)message.getHeaders()
                 .get("nativeHeaders", Map.class)
@@ -103,16 +128,9 @@ public class TestController {
                 .get(0).toString();
     }
 
-    private String extractRev(Message<?> message){
-        return ((List<?>)message.getHeaders()
-                .get("nativeHeaders", Map.class)
-                .get("rev"))
-                .get(0).toString();
-    }
-
     @EventListener
     public void onApplicationEvent(SessionConnectEvent event) {
-        System.out.println("connected");
+        System.out.println(((StompPrincipal)event.getUser()).getCorePrincipal().getName() + " connected");
     }
 
     @EventListener
@@ -125,12 +143,32 @@ public class TestController {
             transformer = new Transformer(accessPoint, dataStorage, fileId);
             transformers.put(fileId, transformer);
         }
-        if (!transformer.getUsers().contains(event.getUser()))
-            for (Principal user : transformer.getUsers())
-                template.convertAndSendToUser(user.getName(),
-                        "/queue/session/" + transformer.getFileId(),
-                        statusUpdateToJson(StatusUpdate.builder().user(event.getUser().getName()).status("CONNECTED").build()));
-        transformer.addUser(event.getUser());
+        if (!transformer.getUsers().contains((StompPrincipal)event.getUser())) {
+            transformer.addUser((StompPrincipal)event.getUser());
+            for (StompPrincipal user : transformer.getUsers()) {
+                if (!user.equals(event.getUser())) {
+                    template.convertAndSendToUser(user.getName(),
+                            "/queue/session/" + transformer.getFileId(),
+                            statusUpdateToJson(StatusUpdate.builder().user(event.getUser().getName()).status("CONNECTED").value(transformer.getUsername((StompPrincipal) event.getUser())).build()));
+                    template.convertAndSendToUser(event.getUser().getName(),
+                            "/queue/session/" + transformer.getFileId(),
+                            statusUpdateToJson(StatusUpdate.builder().user(user.getName()).status("CONNECTED").value(transformer.getUsername(user)).build()));
+                }
+            }
+        }
+        long changesFrom = 0;
+        List<DocumentChange> changes = new ArrayList<>();
+        Pair<Long, String> lastText = accessPoint.getLastText();
+        if (accessPoint.getLastText() != null) {
+            changes.add(DocumentChange.builder().changes(lastText.getSecond()).revision(lastText.getFirst()).user("SYSTEM").build());
+            changesFrom = lastText.getFirst();
+        }
+        changes.addAll(accessPoint.getChangesFrom(changesFrom));
+        for (DocumentChange change : changes)
+            template.convertAndSendToUser(event.getUser().getName(),
+                    "/queue/session/" + transformer.getFileId(),
+                    toJson(change, "CHANGES"));
+
         userSessions.put(event.getMessage().getHeaders().get("simpSessionId", String.class), transformer);
         System.out.println("subscribed");
     }
@@ -138,9 +176,9 @@ public class TestController {
     @EventListener
     public void onApplicationEvent(SessionDisconnectEvent event) throws JsonProcessingException {
         Transformer sessionTransformer = userSessions.get(event.getMessage().getHeaders().get("simpSessionId", String.class));
-        sessionTransformer.removeUser(event.getUser());
-        if (!sessionTransformer.getUsers().contains(event.getUser()))
-            for (Principal user : sessionTransformer.getUsers())
+        sessionTransformer.removeUser((StompPrincipal) event.getUser());
+        if (!sessionTransformer.getUsers().contains((StompPrincipal)event.getUser()))
+            for (StompPrincipal user : sessionTransformer.getUsers())
                 template.convertAndSendToUser(user.getName(),
                         "/queue/session/" + sessionTransformer.getFileId(),
                         statusUpdateToJson(StatusUpdate.builder().user(event.getUser().getName()).status("DISCONNECTED").build()));

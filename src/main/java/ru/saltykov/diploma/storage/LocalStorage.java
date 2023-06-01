@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class LocalStorage implements DataStorage{
 
-    public static String path = StaticResourceConfiguration.homeDir + "\\files";
+    public static String path = StaticResourceConfiguration.homeDir + File.separator + "files";
 
     final HashMap<UUID, File> files = new HashMap<>();
 

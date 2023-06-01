@@ -14,19 +14,6 @@ const STYLE_CODES = {
     'LIST_UNORDERED' : 8,
     'HEADER' : 9
 }
-function dataRopeTest() {
-
-    ropeInsertText('govno ', null, 0);
-    ropeInsertText('zhopa ', null, 0);
-    ropeInsertText('suka ', null, 0);
-
-    ropeInsertText('blya', null, 17);
-
-    ropeInsertText('after suka ', null, 5);
-    ropeInsertText('aaa ', null, 16);
-
-    ropeInsertText('sss', null, 1);
-}
 
 function displayTree() {
     if (document.getElementById) {
@@ -145,7 +132,7 @@ function ropeInsertText(text, style, pos) {
                     ropeRoot = concat(newNode, ropeRoot);
             }
             else {
-                if (pos === 0) {
+                if (pos === ropeRoot.getLength()) {
                     if (ropeRoot.getRight() == null)
                         ropeRoot.setRight(newNode);
                     else if (ropeRoot.getLeft() == null) {
@@ -155,10 +142,9 @@ function ropeInsertText(text, style, pos) {
                         ropeRoot = concat(ropeRoot, newNode);
                 }
             }
-            //ropeRoot = pos === 0 ? concat(newNode, ropeRoot) : concat(ropeRoot, newNode);
         }
         else
-            ropeRoot.setRight(newNode)
+            ropeRoot.setRight(newNode);
 
         return {added : [newNode], removed};
     }
@@ -224,6 +210,8 @@ function ropeDeleteText(pos, length) {
     let start = getAffectedNode(ropeRoot, pos + 1)
     let affected = start[0];
     let remainingPos = pos - start[1];
+    if (remainingPos < 0)
+        remainingPos = ropeRoot.getLength() -Math.abs(pos - start[1]);
 
     let remainingLength = length;
 
@@ -237,7 +225,7 @@ function ropeDeleteText(pos, length) {
         let el = leftmostChild(ropeRoot);
         while (el){
             changed.push({el : el, before : el.text});
-            el.nextTextNode();
+            el = el.nextTextNode();
         }
         ropeRoot.deleteLeft();
         ropeRoot.deleteRight();
@@ -312,14 +300,14 @@ function getAffectedNode(start, pos) {
     let node = start;
     while (true) {
         if (node.text)
-            break
+            break;
         else if (pos === 0) {
             while (node.text == null)
-                node = node.getLeft() || node.getRight();
+                node = node.getLeft() ?? node.getRight();
         }
         else if (pos === ropeRoot.length){
             while (node.text == null)
-                node = node.getRight() || node.getLeft();
+                node = node.getRight() ?? node.getLeft();
             posChecked = ropeRoot.length;
         }
         else if (node.getLeft() && (posChecked + node.getLeft().getLength()) >= pos) {

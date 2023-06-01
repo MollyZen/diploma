@@ -5,10 +5,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
+import java.time.LocalDateTime;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Jacksonized
 public class ChatMessage extends CollaborationMessage{
+    LocalDateTime timestamp;
+    Integer messageId;
     String message;
 }

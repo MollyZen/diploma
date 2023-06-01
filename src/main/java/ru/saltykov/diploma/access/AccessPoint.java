@@ -16,5 +16,7 @@ public interface AccessPoint {
     String getText(Long revId);
 
     //chat
+    void addMessage(ChatMessage message);
     List<ChatMessage> getMessagesFrom(Long messageId);
+    Integer getMessageHead();
 }

@@ -1,6 +1,6 @@
 const modelViewRelMap = new Map();
 
-const SPAN_SIZE_LIMIT = 128;
+const SPAN_SIZE_LIMIT = 256;
 const ROPE_NODE_SIZE_LIMIT = 4;
 
 const actionHistory = [];

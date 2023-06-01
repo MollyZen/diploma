@@ -18,10 +18,6 @@ const AllowedTokens = {
     CHAR_REMOVED : "-",
     APPLY_FORMATTING : "*"
 }
-function Token(token, value) {
-    this.token = token;
-    this.value = value;
-}
 
 // message objects
 function Changes(user, revision, start) {
@@ -83,185 +79,162 @@ function Changes(user, revision, start) {
     this.merge = (changes) => {
         const lengthChange = changes.getLengthChange();
         const thisLengthChange = changes.getLengthChange();
-        /*if (this.start >= changes.start + Math.abs(lengthChange)){
-            this.start = changes.start;
-            const toAdjust = this.start - changes.start - lengthChange;
-            const tmp = this.tokens;
-            this.tokens = changes.tokens.slice();
-            if (toAdjust > 0) this.skipText(toAdjust, null);
-            this.tokens = this.tokens.concat(tmp);
-            this.text = changes.text + this.text;
+        let thisTokenCopy = this.tokens.slice();
+        let thisTextRemaining = this.text;
+        let thisTextDeletedRemaining = this.deletedText;
+        let thisStart = this.start;
+        let thisStyling = accumulateStyling(thisTokenCopy);
+        let thisEnd = this.start;
+        switch (thisTokenCopy[0].slice(0, 1)){
+            case '+' :
+            case '=' : thisEnd += parseInt(thisTokenCopy[0].slice(1));
         }
-        else if (changes.start >= this.start + Math.abs(thisLengthChange)){
-            const tmpVals = JSON.parse(JSON.stringify(changes));
-            const tmp = new Changes(tmpVals.user, tmpVals.revision, tmpVals.start);
-            tmp.text = tmpVals.text;
-            tmp.tokens = tmpVals.tokens;
-            tmp.deletedText = tmpVals.deletedText;
-            tmp.merge(this);
 
-            this.text = tmp.text;
-            this.tokens = tmp.tokens;
-            this.start = tmp.start;
+        let changesTokenCopy = changes.tokens.slice();
+        let changesTextRemaining = changes.text;
+        let changesTextDeletedRemaining = changes.deletedText;
+        let changesStart = changes.start;
+        let changesStyling = accumulateStyling(changesTokenCopy);
+        let changesEnd = changes.start;
+        switch (changesTokenCopy[0].slice(0,1)){
+            case '-' :
+            case '=' : changesEnd += parseInt(changesTokenCopy[0].slice(1));
         }
-        else {*/
-            let thisTokenCopy = this.tokens.slice();
-            let thisTextRemaining = this.text;
-            let thisTextDeletedRemaining = this.deletedText;
-            let thisStart = this.start;
-            let thisStyling = accumulateStyling(thisTokenCopy);
-            let thisEnd = this.start;
-            switch (thisTokenCopy[0].slice(0, 1)){
-                case '+' :
-                case '=' : thisEnd += parseInt(thisTokenCopy[0].slice(1));
-            }
 
-            let changesTokenCopy = changes.tokens.slice();
-            let changesTextRemaining = changes.text;
-            let changesTextDeletedRemaining = changes.deletedText;
-            let changesStart = changes.start;
-            let changesStyling = accumulateStyling(changesTokenCopy);
-            let changesEnd = changes.start;
-            switch (changesTokenCopy[0].slice(0,1)){
-                case '-' :
-                case '=' : changesEnd += parseInt(changesTokenCopy[0].slice(1));
-            }
+        this.text = '';
+        this.tokens = [];
+        this.deletedText = '';
 
-            this.text = '';
-            this.tokens = [];
-            this.deletedText = '';
-
-            let thisToken = thisTokenCopy.pop();
-            let changesToken = changesTokenCopy.pop();
-            while (thisToken || changesToken){
-                if (thisToken && (thisEnd <= changesStart || changesToken == null)){
-                    this.tokens.push(...thisStyling);
-                    this.tokens.push(thisToken);
-                    const [first, second] = splitString(thisTextRemaining, parseInt(thisToken));
-                    this.text += first;
-                    thisTextRemaining = second;
-                    thisStyling = accumulateStyling(thisTokenCopy);
-                    thisToken = thisTokenCopy.shift();
-                    thisStart = thisEnd;
-                    thisEnd = thisStart;
-                    if (thisToken) {
-                        switch (thisToken.slice(0, 1)) {
-                            case '+' :
-                            case '=' :
-                                thisEnd += parseInt(thisToken.slice(1));
-                        }
+        let thisToken = thisTokenCopy.pop();
+        let changesToken = changesTokenCopy.pop();
+        while (thisToken || changesToken){
+            if (thisToken && (thisEnd <= changesStart || changesToken == null)){
+                this.tokens.push(...thisStyling);
+                this.tokens.push(thisToken);
+                const [first, second] = splitString(thisTextRemaining, parseInt(thisToken));
+                this.text += first;
+                thisTextRemaining = second;
+                thisStyling = accumulateStyling(thisTokenCopy);
+                thisToken = thisTokenCopy.shift();
+                thisStart = thisEnd;
+                thisEnd = thisStart;
+                if (thisToken) {
+                    switch (thisToken.slice(0, 1)) {
+                        case '+' :
+                        case '=' :
+                            thisEnd += parseInt(thisToken.slice(1));
                     }
                 }
-                else if (changesToken && (changesEnd <= thisStart || thisToken == null)){
-                    this.tokens.push(...changesStyling);
-                    this.tokens.push(changesToken);
-                    const [first, second] = splitString(changesTextRemaining, parseInt(changesToken));
-                    this.text += first;
-                    changesTextRemaining = second;
-                    changesStyling = accumulateStyling(changesTokenCopy);
-                    changesToken = changesTokenCopy.shift();
-                    changesStart = changesEnd;
-                    changesEnd = changesStart;
-                    if (changesToken) {
-                        switch (changesToken.slice(0, 1)) {
-                            case '-' :
-                            case '=' :
-                                changesEnd += parseInt(changesToken.slice(1));
-                        }
+            }
+            else if (changesToken && (changesEnd <= thisStart || thisToken == null)){
+                this.tokens.push(...changesStyling);
+                this.tokens.push(changesToken);
+                const [first, second] = splitString(changesTextRemaining, parseInt(changesToken));
+                this.text += first;
+                changesTextRemaining = second;
+                changesStyling = accumulateStyling(changesTokenCopy);
+                changesToken = changesTokenCopy.shift();
+                changesStart = changesEnd;
+                changesEnd = changesStart;
+                if (changesToken) {
+                    switch (changesToken.slice(0, 1)) {
+                        case '-' :
+                        case '=' :
+                            changesEnd += parseInt(changesToken.slice(1));
+                    }
+                }
+            }
+            else {
+                if (thisStart !== changesStart){
+                    if (thisStart < changesStart){
+                        let val = changesStart - thisStart;
+                        let token = thisToken.slice(0, 1);
+                        let tokenVal = parseInt(thisToken.slice(1));
+                        let subval = tokenVal - thisEnd + val;
+                        thisTokenCopy.unshift(token + subval);
+                        thisTokenCopy.unshift([...thisStyling]);
+                        thisToken = token + (tokenVal - subval);
+                    }
+                    else {
+                        let val = thisStart - changesStart;
+                        let token = changesToken.slice(0, 1);
+                        let tokenVal = parseInt(changesToken.slice(1));
+                        let subval = tokenVal - changesEnd + val;
+                        changesTokenCopy.unshift(token + subval);
+                        changesTokenCopy.unshift([...changesStyling]);
+                        changesToken = token + (tokenVal - subval);
+                    }
+                }
+                else if (thisEnd !== changesEnd){
+                    if (thisEnd < changesEnd){
+                        let val = changesEnd - thisEnd;
+                        let token = thisToken.slice(0, 1);
+                        let tokenVal = parseInt(thisToken.slice(1));
+                        let subval = tokenVal - thisEnd + val;
+                        thisTokenCopy.unshift(token + subval);
+                        thisTokenCopy.unshift([...thisStyling]);
+                        thisToken = token + (tokenVal - subval);
+                    }
+                    else {
+                        let val = thisEnd - changesEnd;
+                        let token = changesToken.slice(0, 1);
+                        let tokenVal = parseInt(changesToken.slice(1));
+                        let subval = tokenVal - changesEnd + val;
+                        changesTokenCopy.unshift(token + subval);
+                        changesTokenCopy.unshift([...changesStyling]);
+                        changesToken = token + (tokenVal - subval);
                     }
                 }
                 else {
-                    if (thisStart !== changesStart){
-                        if (thisStart < changesStart){
-                            let val = changesStart - thisStart;
-                            let token = thisToken.slice(0, 1);
-                            let tokenVal = parseInt(thisToken.slice(1));
-                            let subval = tokenVal - thisEnd + val;
-                            thisTokenCopy.unshift(token + subval);
-                            thisTokenCopy.unshift([...thisStyling]);
-                            thisToken = token + (tokenVal - subval);
+                    let thisTokenToken = thisToken.slice(0,1);
+                    let changesTokenToken = changesToken.slice(0,1);
+                    if (thisTokenToken === '='){
+                        if (changesTokenToken === '-'){
+                            thisStyling = accumulateStyling(thisTokenCopy);
+                            thisToken = thisTokenCopy.shift();
+                            this.tokens.push(changesToken);
+                            changesStyling = accumulateStyling(changesTokenCopy);
+                            changesToken = changesTokenCopy.shift();
                         }
                         else {
-                            let val = thisStart - changesStart;
-                            let token = changesToken.slice(0, 1);
-                            let tokenVal = parseInt(changesToken.slice(1));
-                            let subval = tokenVal - changesEnd + val;
-                            changesTokenCopy.unshift(token + subval);
-                            changesTokenCopy.unshift([...changesStyling]);
-                            changesToken = token + (tokenVal - subval);
+                            let stylingMap = new Map();
+                            thisStyling.forEach(val => {
+                                const split = val.split(':');
+                                stylingMap.set(split[0], split[1]);
+                            });
+                            changesStyling.forEach(val => {
+                                const split = val.split(':');
+                                stylingMap.set(split[0], split[1]);
+                            })
+                            stylingMap = new Map([...stylingMap.entries()].sort());
+                            stylingMap.forEach(val => this.tokens.push(val[0] + ':' + val[1]))
                         }
                     }
-                    else if (thisEnd !== changesEnd){
-                        if (thisEnd < changesEnd){
-                            let val = changesEnd - thisEnd;
-                            let token = thisToken.slice(0, 1);
-                            let tokenVal = parseInt(thisToken.slice(1));
-                            let subval = tokenVal - thisEnd + val;
-                            thisTokenCopy.unshift(token + subval);
-                            thisTokenCopy.unshift([...thisStyling]);
-                            thisToken = token + (tokenVal - subval);
+                    else if (thisTokenToken === '+'){
+                        if (changesTokenToken === '-'){
+                            thisTextRemaining = thisTextRemaining.slice(thisToken.slice(1));
+                            changesTextDeletedRemaining = changesTextDeletedRemaining.slice(changesToken.slice(1));
+                            thisStyling = accumulateStyling(thisTokenCopy);
+                            thisToken = thisTokenCopy.shift();
+                            changesStyling = accumulateStyling(changesTokenCopy);
+                            changesToken = changesTokenCopy.shift();
                         }
                         else {
-                            let val = thisEnd - changesEnd;
-                            let token = changesToken.slice(0, 1);
-                            let tokenVal = parseInt(changesToken.slice(1));
-                            let subval = tokenVal - changesEnd + val;
-                            changesTokenCopy.unshift(token + subval);
-                            changesTokenCopy.unshift([...changesStyling]);
-                            changesToken = token + (tokenVal - subval);
-                        }
-                    }
-                    else {
-                        let thisTokenToken = thisToken.slice(0,1);
-                        let changesTokenToken = changesToken.slice(0,1);
-                        if (thisTokenToken === '='){
-                            if (changesTokenToken === '-'){
-                                thisStyling = accumulateStyling(thisTokenCopy);
-                                thisToken = thisTokenCopy.shift();
-                                this.tokens.push(changesToken);
-                                changesStyling = accumulateStyling(changesTokenCopy);
-                                changesToken = changesTokenCopy.shift();
-                            }
-                            else {
-                                let stylingMap = new Map();
-                                thisStyling.forEach(val => {
-                                    const split = val.split(':');
-                                    stylingMap.set(split[0], split[1]);
-                                });
-                                changesStyling.forEach(val => {
-                                    const split = val.split(':');
-                                    stylingMap.set(split[0], split[1]);
-                                })
-                                stylingMap = new Map([...stylingMap.entries()].sort());
-                                stylingMap.forEach(val => this.tokens.push(val[0] + ':' + val[1]))
-                            }
-                        }
-                        else if (thisTokenToken === '+'){
-                            if (changesTokenToken === '-'){
-                                thisTextRemaining = thisTextRemaining.slice(thisToken.slice(1));
-                                changesTextDeletedRemaining = changesTextDeletedRemaining.slice(changesToken.slice(1));
-                                thisStyling = accumulateStyling(thisTokenCopy);
-                                thisToken = thisTokenCopy.shift();
-                                changesStyling = accumulateStyling(changesTokenCopy);
-                                changesToken = changesTokenCopy.shift();
-                            }
-                            else {
-                                let stylingMap = new Map();
-                                thisStyling.forEach(val => {
-                                    const split = val.split(':');
-                                    stylingMap.set(split[0], split[1]);
-                                });
-                                changesStyling.forEach(val => {
-                                    const split = val.split(':');
-                                    stylingMap.set(split[0], split[1]);
-                                })
-                                stylingMap = new Map([...stylingMap.entries()].sort());
-                                stylingMap.forEach(val => this.tokens.push(val[0] + ':' + val[1]))
-                            }
+                            let stylingMap = new Map();
+                            thisStyling.forEach(val => {
+                                const split = val.split(':');
+                                stylingMap.set(split[0], split[1]);
+                            });
+                            changesStyling.forEach(val => {
+                                const split = val.split(':');
+                                stylingMap.set(split[0], split[1]);
+                            })
+                            stylingMap = new Map([...stylingMap.entries()].sort());
+                            stylingMap.forEach(val => this.tokens.push(val[0] + ':' + val[1]))
                         }
                     }
                 }
-            //}
+            }
         }
     }
 }
@@ -306,7 +279,7 @@ function processMessage(message) {
 }
 
 function processChanges(messageId, obj) {
-    if (curRev - obj.message.revision > 1) {
+    if (curRev - obj.message.revision > 1 && obj.message.user !== "SYSTEM") {
         pending.set(obj.message.revision, {messageId, obj});
         return;
     }
@@ -401,21 +374,6 @@ function submitChatMessage(message){
 
 function submitCursorUpdate(update){
 
-}
-function parseMessage(message) {
-    const split = message.body.split(/#/);
-
-    var subsplit = split[0].split(/[+-]/)
-    const start = subsplit[0];
-    const changeLength = subsplit[1];
-
-    subsplit = split[1].split(' ');
-    var tokens = [];
-    subsplit.forEach(el => tokens.push(new Token(el.charAt(0), el.substring(1))));
-
-    var newText = split[2];
-
-    var changes = new Changes(null, null, start, changeLength, tokens, newText);
 }
 
 ///misc

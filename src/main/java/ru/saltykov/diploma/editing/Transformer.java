@@ -3,11 +3,16 @@ package ru.saltykov.diploma.editing;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.data.util.Pair;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import ru.saltykov.diploma.access.AccessPoint;
+import ru.saltykov.diploma.config.StompPrincipal;
+import ru.saltykov.diploma.messages.ChatMessage;
 import ru.saltykov.diploma.messages.DocumentChange;
 import ru.saltykov.diploma.storage.DataStorage;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -15,14 +20,23 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Transformer {
+    private final LinkedHashSet<String> randomNames = new LinkedHashSet<>(){{
+        add("Анонимный гений");
+        add("Анонимный аноним");
+        add("Анонимный писатель");
+        add("Анонимный поэт");
+        add("Анонимный редактор");
+        add("Анонимный прозаик");
+    }};
     private final AccessPoint accessPoint;
     private final DataStorage dataStorage;
     @Getter
     private final String fileId;
     private Long revision = 0L;
 
-    private final Set<Principal> users = new HashSet<>();
-    private final Map<Principal, Integer> instancesCount = new HashMap<>();
+    private final Set<StompPrincipal> users = new HashSet<>();
+    private final Map<String, String> anonymousUserNames = new HashMap<>();
+    private final Map<StompPrincipal, Integer> instancesCount = new HashMap<>();
 
     public Transformer(AccessPoint accessPoint, DataStorage dataStorage, String fileId) {
         this.accessPoint = accessPoint;
@@ -51,42 +65,66 @@ public class Transformer {
 
     private String combineChanges(Long revId){
         StringBuilder builder = new StringBuilder();
+        StringBuilder resText = new StringBuilder();
         Pair<Long, String> lastText = accessPoint.getLastText();
         List<DocumentChange> changes = new ArrayList<>();
         if (lastText != null) {
-            builder.append(lastText.getSecond());
+            changes.add(DocumentChange.builder().changes(lastText.getSecond()).revision(lastText.getFirst()).build());
             changes.addAll(accessPoint.getChangesFrom(lastText.getFirst()));
         }
         else{
             changes.addAll(accessPoint.getChangesFrom(0L));
         }
         List<ParsedChanges> parsedChanges = changes.stream().map(this::parseChanges).toList();
+        TreeMap<String, String> formatting = new TreeMap<>();
+        DataRope rope = new DataRope();
         for (ParsedChanges parsedChange : parsedChanges){
-            AtomicInteger mainPointer = new AtomicInteger(parsedChange.getStart());
-            AtomicInteger subPointer = new AtomicInteger(0);
-            String text = parsedChange.getText();
-            parsedChange
-                    .getTokens()
-                    .stream()
-                    .filter(e -> e.getToken().equals(AllowedTokens.CHAR_ADDED) ||
-                            e.getToken().equals(AllowedTokens.CHAR_REMOVED) ||
-                            e.getToken().equals(AllowedTokens.CHAR_KEPT))
-                    .forEach(e -> {
-                        switch (e.getToken()) {
-                            case AllowedTokens.CHAR_ADDED -> {
-                                builder.insert(mainPointer.get(), text.substring(subPointer.get(), subPointer.get() + e.getValue()));
-                                subPointer.addAndGet(e.getValue());
-                                mainPointer.addAndGet(e.getValue());
-                            }
-                            case AllowedTokens.CHAR_REMOVED ->
-                                    builder.replace(mainPointer.get(), mainPointer.get() + e.getValue(), "");
-                            case AllowedTokens.CHAR_KEPT ->
-                                    mainPointer.addAndGet(e.getValue());
-                        }
-                    });
+            String remainingText = parsedChange.getText();
+            int pos = parsedChange.getStart();
+            int initialLength = rope.getRopeRoot().getLength();
+            int targetDiff = parsedChange.getCharLengthChange();
+            for (FormattedToken token : parsedChange.getTokens()){
+                switch (token.getToken()){
+                    case AllowedTokens.CHAR_ADDED -> {
+                        String style = formatting.entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(" "));
+                        String toInsert = remainingText.substring(0, token.getValue());
+                        rope.ropeInsertText(toInsert, style, pos);
+                        pos += toInsert.length();
+                        remainingText = remainingText.substring(toInsert.length());
+                        formatting = new TreeMap<>();
+                    }
+                    case AllowedTokens.CHAR_REMOVED -> {
+                        rope.ropeDeleteText(pos, token.getValue());
+                    }
+                    case AllowedTokens.CHAR_KEPT -> {
+                        //TODO: здесь и во фронте сделать
+                    }
+                    case AllowedTokens.APPLY_FORMATTING -> {
+                        formatting.put(token.getValue().toString(), token.getSubValue());
+                    }
+                }
+            }
+            System.out.println("SOMETHIN WENT WRONG");
         }
 
-        return builder.toString();
+        int cnt = 0;
+        DataRope.TreeNode node = rope.getRopeRoot().nextTextNode();
+        String lastFormatting = node != null ? node.getStyle() : null;
+        while (node != null){
+            if (lastFormatting.equals(node.getStyle()))
+                cnt += node.getText().length();
+            else{
+                builder.append("*").append(lastFormatting.replaceAll(" ", "*")).append("+").append(cnt);
+                cnt = node.getText().length();
+                lastFormatting = node.getStyle();
+            }
+            resText.append(node.getText());
+            node = node.nextTextNode();
+        }
+        if (cnt > 0)
+            builder.append("*").append(lastFormatting.replaceAll(" ", "*")).append("+").append(cnt);
+
+        return "0+" + resText.length() + "#" + builder.toString() + "#" + resText.toString();
     }
 
     private DocumentChange parse(DocumentChange changes) throws Exception{
@@ -270,7 +308,7 @@ public class Transformer {
 
         //tokens
         Matcher m = Pattern.compile("([\\-+=]|\\*[0-9]+:)[0-9]+")
-                .matcher(split[1]);
+                .matcher(split.length > 1 ? split[1] : "");
         List<String> tmp = new ArrayList<>();
         while (m.find())
             tmp.add(m.group());
@@ -293,26 +331,52 @@ public class Transformer {
         return res;
     }
 
-    public void addUser(Principal user){
+    public void addUser(StompPrincipal user){
         users.add(user);
         Integer instances = this.instancesCount.get(user);
         if (instances == null)
             instances = 0;
         ++instances;
         this.instancesCount.put(user, instances);
-        System.out.println("Connected users: " + users.stream().map(Principal::getName).collect(Collectors.joining(", ")));
+        if (user.getCorePrincipal() instanceof Authentication){
+            if (((Authentication) user.getCorePrincipal()).getAuthorities().stream().anyMatch(e -> e.getAuthority().equals("ROLE_ANONYMOUS"))){
+                String randomName = randomNames.stream().findFirst().get();
+                randomNames.remove(randomName);
+                randomNames.add(randomName);
+                anonymousUserNames.put(user.getName(), randomName);
+            }
+        }
+        System.out.println("Connected users: " + users.stream().map(e -> e.getCorePrincipal().getName()).collect(Collectors.joining(", ")));
     }
 
-    public void removeUser(Principal user){
+    public void removeUser(StompPrincipal user){
         Integer cnt = this.instancesCount.get(user);
         --cnt;
         this.instancesCount.put(user, cnt);
         if (cnt == 0)
             users.remove(user);
-        System.out.println("Connected users: " + users.stream().map(Principal::getName).collect(Collectors.joining(", ")));
+        System.out.println("Connected users: " + users.stream().map(e -> e.getCorePrincipal().getName()).collect(Collectors.joining(", ")));
     }
 
-    public Set<Principal> getUsers(){
+    public Set<StompPrincipal> getUsers(){
         return users;
+    }
+
+    public String getUsername(StompPrincipal user){
+        if (anonymousUserNames.get(user.getName()) != null)
+            return anonymousUserNames.get(user.getName());
+        else
+            return user.getCorePrincipal().getName();
+    }
+
+    public ChatMessage addMessage(ChatMessage message) {
+        message.setTimestamp(LocalDateTime.now());
+        message.setMessageId(accessPoint.getMessageHead());
+        accessPoint.addMessage(message);
+        return message;
+    }
+
+    public List<ChatMessage> getMessagesFrom(Long messageId) {
+        return accessPoint.getMessagesFrom(messageId);
     }
 }

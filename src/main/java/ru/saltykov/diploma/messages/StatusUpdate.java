@@ -11,4 +11,5 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class StatusUpdate extends CollaborationMessage{
     String status;
+    String value;
 }

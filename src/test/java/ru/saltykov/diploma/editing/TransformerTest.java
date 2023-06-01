@@ -65,4 +65,18 @@ class TransformerTest {
         assertEquals("FAABR", accessPoint.getLastText().getSecond());
     }
 
+    @Test
+    public void doubleReplace(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+3#+3#AAA", 0L);
+        DocumentChange ch1 = new DocumentChange("0+0#-1+1#B", 1L);
+        DocumentChange ch2 = new DocumentChange("0+0#-1+1#C", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch1);
+        transformer.applyChanges(ch2);
+        transformer.insertText();
+        assertEquals("BCAA", accessPoint.getLastText().getSecond());
+    }
+
 }

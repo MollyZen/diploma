@@ -20,8 +20,6 @@ import java.util.regex.Pattern;
 public class SecurityConfig{
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        /*HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-        requestCache.setMatchingRequestParameterName(null);*/
         http.csrf().requireCsrfProtectionMatcher(new RequestMatcher() {
             private Pattern allowedMethods = Pattern.compile("^(GET|HEAD|TRACE|OPTIONS)$");
             private RegexRequestMatcher apiMatcher = new RegexRequestMatcher("/h2-console.*", null);
@@ -41,16 +39,16 @@ public class SecurityConfig{
             }
         });
         http.headers().frameOptions().sameOrigin();
-        http
-                .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/").permitAll()
+        http.authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/").authenticated()
+                        .requestMatchers("/**").permitAll()
                         .requestMatchers("/h2-console").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults())
-                .logout(LogoutConfigurer::permitAll)
-                /*.requestCache((cache) -> cache.requestCache(requestCache))*/;
+                .logout(LogoutConfigurer::permitAll);
+
         return http.build();
     }
 
@@ -60,7 +58,7 @@ public class SecurityConfig{
                 User.withDefaultPasswordEncoder()
                         .username("user")
                         .password("password")
-                        .roles("USER", "ADMIN")
+                        .roles("USER")
                         .build();
         UserDetails user2 =
                 User.withDefaultPasswordEncoder()
