@@ -38,7 +38,7 @@ public class UserController {
         codes.put(0, "Arial");
         codes.put(1, "Times New Roman");
         codes.put(2, "Calibri");
-        codes.put(3, "Roboto Mono");
+        codes.put(3, "Courier");
 
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(codes);
