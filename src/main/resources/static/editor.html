@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Editor</title>
 
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
 
+    <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/editor.css">
     <link rel="stylesheet" href="/static/css/pages.css">
     <link rel="stylesheet" href="/static/css/styling.css">
@@ -23,32 +24,28 @@
     <script src="/static/js/editor-controller.js"></script>
 </head>
 
-<body onload="toolbarSetup();initController();addUser('MollyZen')" role="application" style="background-color: lightcyan; overflow: hidden;">
+<body onload="toolbarSetup();initController();connect();addUser('MollyZen')" role="application" style="background-color: var(--background-color); overflow: hidden;">
 <noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
     enabled. Please enable
     Javascript and reload this page!
 </h2></noscript>
-<div id="banner" role="banner" style="width: 100%; display: flex; flex-direction: column;">
-    <div class="top_banner">
-        <a href="/file-picker"><img src="/static/img/icon.svg" style="object-fit:contain; margin-right: 10px;" width="40"
-                         height="40" /></a>
+<div id="banner" role="banner" class="banner" style="width: 100%; display: flex; flex-direction: column;">
+    <div id="top_banner" class="top_banner">
+        <a href="/file-picker"><img src="/static/img/icon.svg" style="object-fit:contain; margin-right: 10px;" width="40" height="40" /></a>
         <div class="menubar">
             <div class="menubar_left" role="menubar" style="display: flex; ">
                 <div style="display: flex; flex-direction: column;">
-                    <div>
-                        FileName
-                    </div>
+                    <input value="НАЗВАНИЕ ФАЙЛА" type="text" spellcheck="false" autocomplete="off">
                     <div id="top-menu" style="display: block; overflow-x: hidden;">
-                        <div class="menuitem" role="menuitem">File</div>
-                        <div class="menuitem" role="menuitem">Help</div>
+                        <div class="menuitem" role="menuitem">Файл</div>
+                        <div class="menuitem" role="menuitem">Помощь</div>
                     </div>
                 </div>
             </div>
             <div class="menu_right">
                 <span id="firstName"></span>
                 <span id="lastName"></span>
-                <button id="displayTree" onclick="displayTree()">Display Tree</button>
-                <button id="connect">Connect</button>
+                <button class="bi bi-share editor-button"></button>
                 <div id="images">
                     <div id="currentImage" class="profileImage"></div>
                 </div>
@@ -66,86 +63,65 @@
 
             <div class="buttons-with-input">
                 <button class="bi-dash-square-fill editor-button" id="font-size-minus"></button>
-                <input id="font-size-input" type="text" autocomplete="false" style="text-align:center;min-height:25px" size="1" />
+                <input id="font-size-input" type="text" autocomplete="false" style="text-align:center;min-height:28px; padding: 0" size="1" />
                 <button class="bi-plus-square-fill editor-button" id="font-size-plus"></button>
             </div>
 
             <span class="separator"></span>
 
             <div class="select_wrap">
-                <ul id="font" class="default_option">
-                </ul>
-                <ul class="select_ul">
-                </ul>
+                <ul id="font" class="default_option"></ul>
+                <ul class="select_ul"></ul>
             </div>
 
             <span class="separator"></span>
 
             <div class="select_wrap">
                 <ul id="zoom" class="default_option">
-                    <li>
-                        <div class="option">
-                            100%
-                        </div>
-                    </li>
+                    <li><div class="option">100%</div></li>
                 </ul>
                 <ul class="select_ul">
-                    <li>
-                        <div class="option">
-                            25%
-                        </div>
-                    </li>
-                    <li>
-                        <div class="option">
-                            50%
-                        </div>
-                    </li>
-                    <li>
-                        <div class="option">
-                            75%
-                        </div>
-                    </li>
-                    <li>
-                        <div class="option">
-                            100%
-                        </div>
-                    </li>
-                    <li>
-                        <div class="option">
-                            125%
-                        </div>
-                    </li>
-                    <li>
-                        <div class="option">
-                           150%
-                        </div>
-                    </li>
-                    <li>
-                        <div class="option">
-                            175%
-                        </div>
-                    </li>
-                    <li>
-                        <div class="option">
-                            200%
-                        </div>
-                    </li>
+                    <li><div class="option">25%</div></li>
+                    <li><div class="option">50%</div></li>
+                    <li> <div class="option"> 75%</div></li>
+                    <li><div class="option">100%</div></li>
+                    <li><div class="option">125%</div></li>
+                    <li><div class="option">150%</div></li>
+                    <li><div class="option">175%</div></li>
+                    <li><div class="option">200%</div></li>
                 </ul>
             </div>
 
         </ul>
 
         <ul class="toolbar_right" role="toolbar">
-            <div>Placeholder_for_something</div>
+            <button id="hide-banner" class="bi bi-chevron-up editor-button"></button>
         </ul>
     </div>
 </div>
 
 <div id="pane-holder" style="width: 100%; overflow: auto;">
-    <div id="tmp" style="margin:30px auto; overflow: hidden; height: fit-content; width: fit-content;outline: 1px solid lightgray;">
+    <div id="tmp" style="margin:30px auto; overflow: hidden; height: fit-content; width: fit-content;outline: 1px solid lightgray;border-radius: 3px;">
         <div id="pane" contenteditable="true" spellcheck="false" style="overflow: hidden; transform-origin: top left; margin: 0 0; padding: 0 0; height: fit-content; width: fit-content; position: relative; z-index: 1; word-break: break-word; white-space: break-spaces;">
         </div>
     </div>
 </div>
+<button id="chatopen" style="z-index:100;position: absolute;bottom: 0;box-sizing: border-box;right: 35px;background-color: var(--main-color);display: flex;flex-direction: column;cursor: pointer;border-radius: 3px;border: none;box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);width: 80px;height: 60px;justify-content: center;font-size: 16px;">
+    <span>Чат</span>
+    <span class="bi bi-chat-dots"></span>
+</button>
+<div id="chat" style="display: none">
+    <div id="chattitle" style="line-height: 44px;height: 44px;padding: 0 7px;justify-content: space-between;display: flex;background-color: var(--main-color);border-top-left-radius:inherit;border-top-right-radius:inherit;align-items: baseline;">
+        <span>ЧАТ</span>
+        <button id="chatclose" class="bi bi-x editor-button"></button>
+    </div>
+    <div id="chattext" style="padding: 0;overflow-y:auto;flex:1 auto;height: 0;box-sizing: border-box;background-color: white;"></div>
+    <div id="chatinputholder">
+        <form>
+            <textarea id="chatinput" maxlength="999" placeholder="Напишите сообщение..." aria-label="Напишите сообщение..."></textarea>
+        </form>
+    </div>
+</div>
+
 </body>
 </html>

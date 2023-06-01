@@ -287,7 +287,7 @@ function processChanges(messageId, obj) {
     if (firstInQueue && messageId === firstInQueue.messageId){
         if (firstInQueue.changes.getChanges() === obj.message.changes) {
             history.push(changesQueue.shift());
-            curRev = obj.message.revision;
+            setRev(obj.message.revision);
         }
         else{
             console.log('UNDO IS SUPPOSED TO HAPPEN');
@@ -326,7 +326,7 @@ function processChanges(messageId, obj) {
                 formatting = [];
             }
         })
-        curRev = obj.message.revision;
+        setRev(obj.message.revision);
 
         lastPositionChangeStart = start;
         lastPositionChangeLength = lengthChange;
@@ -377,6 +377,10 @@ function submitCursorUpdate(update){
 }
 
 ///misc
+function setRev(rev){
+    curRev = rev;
+    //document.getElementById("rev_count").textContent = rev;
+}
 function makeid(length) {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

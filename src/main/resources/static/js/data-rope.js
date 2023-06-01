@@ -2,6 +2,8 @@ var ropeRoot =  new TreeNode(null, null, null,null, null);
 
 const usedStyles = new Map();
 
+let specChars = 0;
+
 const STYLE_CODES = {
     'BOLD' : 0,
     'ITALIC' : 1,
@@ -115,6 +117,9 @@ function leftmostChild(node){
 }
 
 function ropeInsertText(text, style, pos) {
+    if (text.match(/[\n]/g))
+        specChars++;
+
     let newNode = new TreeNode(null, null, null, text, style);
 
     let added = [];
@@ -225,6 +230,9 @@ function ropeDeleteText(pos, length) {
         let el = leftmostChild(ropeRoot);
         while (el){
             changed.push({el : el, before : el.text});
+            if (el.text.match(/[\n]/g))
+                specChars--;
+
             el = el.nextTextNode();
         }
         ropeRoot.deleteLeft();
@@ -236,11 +244,15 @@ function ropeDeleteText(pos, length) {
         let toDelete = clamp(remainingLength, 0, nodeLength);
         remainingLength -= toDelete;
         changed.push({el : lastNode, before : lastNode.text});
+        if (lastNode.text.match(/[\n]/g))
+            specChars--;
         deletePartFromTextNode(lastNode, remainingPos, toDelete);
         lastNode = nextTextNode(lastNode);
     }
     else {
         changed.push({el : lastNode, before : lastNode.text});
+        if (lastNode.text.match(/[\n]/g))
+            specChars--;
         if (nodeLength > remainingLength) {
             deletePartFromTextNode(lastNode, 0, remainingLength);
             remainingLength = 0;
@@ -259,6 +271,8 @@ function ropeDeleteText(pos, length) {
 
     while (remainingLength > 0){
         changed.push({el : lastNode, before : lastNode.text});
+        if (lastNode.text.match(/[\n]/g))
+            specChars--;
         nodeLength = lastNode.getLength();
         parent = lastNode.parent;
         isLeft = lastNode.isLeft();
@@ -375,6 +389,10 @@ function prevTextNode(start){
         node = null;
 
     return node;
+}
+
+function getLetterCount(){
+    return ropeRoot.getLength() - specChars;
 }
 
 function getFullString(start){

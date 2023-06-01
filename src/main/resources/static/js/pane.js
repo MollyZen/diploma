@@ -171,7 +171,10 @@ function setPane(newPane) {
             }
         }
     })
-    if (mobileAndTabletCheck()) pane.setAttribute('contenteditable', 'false');
+    if (mobileAndTabletCheck()) {
+        pane.setAttribute('contenteditable', 'false');
+        document.getElementById()
+    }
 }
 
 const pageWidth = '210mm';

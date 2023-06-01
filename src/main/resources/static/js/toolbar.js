@@ -146,7 +146,7 @@ function toolbarSetup() {
 
         var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
         var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        var bannerHeight = banner.offsetHeight;
+        var bannerHeight = banner.offsetHeight// + bottom_banner.offsetHeight;
         paneHolder.height(vh - bannerHeight);
         paneHolder.width(vw);
 
@@ -203,12 +203,13 @@ function toolbarSetup() {
     });
 
     const banner = document.getElementById("banner");
+    const bottom_banner = document.getElementById("bottom_banner");
     const paneHolder = $("#pane-holder");
     addEventListener("resize", (event) =>
     {
         var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
         var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        var bannerHeight = banner.offsetHeight;
+        var bannerHeight = banner.offsetHeight //+ bottom_banner.offsetHeight;
         paneHolder.height(vh - bannerHeight);
         paneHolder.width(vw);
 
@@ -222,11 +223,36 @@ function toolbarSetup() {
     });
     var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
     var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    var bannerHeight = banner.offsetHeight;
+    var bannerHeight = banner.offsetHeight //+ bottom_banner.offsetHeight;
     paneHolder.height(vh - bannerHeight);
     paneHolder.width(vw);
 
     setPane(document.getElementById("pane"));
+    const hideBannerButton = document.getElementById("hide-banner");
+    hideBannerButton.addEventListener('click', (ev) => {
+        if (hideBannerButton.classList.contains('bi-chevron-up')) {
+            document.getElementById("top_banner").style.display = "none";
+            hideBannerButton.classList.remove('bi-chevron-up');
+            hideBannerButton.classList.add('bi-chevron-down');
+            window.dispatchEvent(new Event('resize'));
+        }
+        else {
+            document.getElementById("top_banner").style.display  = "";
+            hideBannerButton.classList.remove('bi-chevron-down');
+            hideBannerButton.classList.add('bi-chevron-up');
+            window.dispatchEvent(new Event('resize'));
+        }
+    })
+    const chat = document.getElementById('chat');
+    const closeChatButton = document.getElementById('chatclose');
+    const openChatButton = document.getElementById('chatopen');
+    closeChatButton.addEventListener('click', (ev) => {
+        chat.style.display = "none";
+    })
+    openChatButton.addEventListener('click', (ev) => {
+        chat.style.display = "";
+    })
+
     initPages();
 }
 

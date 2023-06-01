@@ -68,7 +68,7 @@ function validateModelView() {
 
 //inputHandling
 function handleTextInput(text, style, pos){
-    text.split(/(\n|\v)/g).forEach(val => {
+    text.split(/(\n|\v|\t)/g).forEach(val => {
         if (val === '\n')
             insertNewLine(pos);
         else if (val === '\v')
@@ -78,6 +78,7 @@ function handleTextInput(text, style, pos){
         else if (val.length > 0)
             insertText(text, style, pos);
     })
+    //document.getElementById("sym_count").textContent = getLetterCount();
 }
 function insertText(text, style, pos){
     let {added, removed} = ropeInsertText(text, style, pos);
@@ -466,7 +467,7 @@ function insertTab(pos){
             const pre = document.createElement('pre');
             pre.setAttribute('class', 'tab');
             pre.appendChild(document.createTextNode('\t'));
-            prevView.after(pre);
+            prevView.before(pre);
 
             prevViewEls.forEach(val => modelViewRelMap.set(val, newTextNode));
             modelViewRelMap.set(added[0], pre);
@@ -547,7 +548,7 @@ function deleteText(pos, length){
         ++i;
     }
 
-    //returns deleted part
+    //document.getElementById("sym_count").textContent = getLetterCount();
     return srcString;
 }
 

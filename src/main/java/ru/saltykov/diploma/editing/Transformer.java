@@ -104,7 +104,6 @@ public class Transformer {
                     }
                 }
             }
-            System.out.println("SOMETHIN WENT WRONG");
         }
 
         int cnt = 0;

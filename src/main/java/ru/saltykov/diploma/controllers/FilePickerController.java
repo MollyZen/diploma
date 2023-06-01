@@ -15,6 +15,7 @@ import ru.saltykov.diploma.storage.FileDescription;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -35,15 +36,15 @@ public class FilePickerController {
         return new RedirectView("/file/" + desc.id() + "/edit");
     }
 
-    @GetMapping(value = "/file-picker", produces = "text/html")
+    @GetMapping(value = "/file-picker", produces = "text/html;charset=UTF-8")
     @ResponseBody
     public String pickFile() throws IOException {
-        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static" + File.separator + "file-picker.html")));
+        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static" + File.separator + "file-picker.html")), StandardCharsets.UTF_8);
     }
 
-    @GetMapping(value = "/file/{id}/edit", produces = "text/html")
+    @GetMapping(value = "/file/{id}/edit", produces = "text/html;charset=UTF-8")
     @ResponseBody
     public String editFile() throws IOException {
-        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static"+ File.separator + "editor.html")));
+        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static"+ File.separator + "editor.html")), StandardCharsets.UTF_8);
     }
 }

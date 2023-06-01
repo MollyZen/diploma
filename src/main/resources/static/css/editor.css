@@ -7,11 +7,9 @@ body {
     margin: 0;
 }
 
-#banner {
+.banner {
     display: flex;
-    flex-direction: row;
-    background-color: steelblue;
-    z-index: 2;
+    background-color: var(--main-color);
 }
 
 .top_banner {
@@ -47,6 +45,7 @@ body {
     display: inline-block;
     background-color: white;
     height: auto;
+    border-radius: 3px;
 }
 
 .toolbar {
@@ -59,21 +58,29 @@ body {
 .toolbar ul.toolbar_left {
     align-items: center;
     padding-left: 5px;
+    margin: auto 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .toolbar ul.toolbar_right {
     align-items: center;
+    flex-direction: row;
     flex-shrink: 0;
+    margin: auto 0;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 
 .editor-button {
-    min-height: 25px;
-    min-width: 25px;
+    min-height: 28px;
+    min-width: 28px;
     background-color: transparent;
     cursor: pointer;
-    /*border: 1px solid #ffffff;*/
+    border-radius: 3px;
     border: none;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+    font-size: 17px;
 }
 
 .editor-button.active {
@@ -89,9 +96,9 @@ body {
     display: inline-block;
     background: #888;
     margin: 0px 4px;
-    height: 18px;
+    height: 28px;
     width: 1px;
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 /*Font selector*/
@@ -113,7 +120,7 @@ body {
 
 .select_wrap .default_option {
     background: #fff;
-    border-radius: 5px;
+    border-radius: 3px;
     position: relative;
     cursor: pointer;
 }
@@ -188,8 +195,8 @@ body {
 }
 
 .profileImage {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #512DA8;
     font-size: 10px;
@@ -217,4 +224,40 @@ body {
     text-align: center;
     text-transform: uppercase;
     font-weight: 400;
+}
+
+/*chat*/
+#chat {
+    z-index:101;
+    bottom:0;
+    position:absolute;
+    right:35px;
+    box-shadow: 0 0 0 1px rgba(99,114,130,.16),0 8px 16px rgba(27,39,51,.08);
+    width: 400px;height: 300px;
+    border-top-left-radius:3px;
+    border-top-right-radius:3px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+#chatinputholder {
+    padding: 5px;
+    background-color: inherit;
+    box-sizing: border-box;
+}
+
+#chattext {
+    border-bottom: 1px solid var(--background-color);
+    border-top: 1px solid var(--background-color);
+}
+
+#chatinput {
+    box-sizing: border-box;
+    background-color: var(--background-color);
+    width:100%;
+    resize:vertical;
+    padding: 8px 10px;
+    border: none;
+    outline: 0;
 }
