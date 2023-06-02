@@ -46,11 +46,14 @@ public class TestController {
         Set<StompPrincipal> users = transformer.getUsers();
         switch (type){
             case  "CHAT" : {
-                ChatMessage chatMessage = transformer.addMessage((ChatMessage)payloadJson.getMessage());
+                ChatMessage chatMessage = (ChatMessage)payloadJson.getMessage();
+                chatMessage.setUser(principal.getName());
+                chatMessage = transformer.addMessage(chatMessage);
                 for (StompPrincipal user : transformer.getUsers()){
                     template.convertAndSendToUser(user.getName(),
                             "/queue/session/" + docId,
-                            toJson(chatMessage, "CHAT"));
+                            toJson(chatMessage, "CHAT"),
+                            Collections.singletonMap("message-id", extractMessageId(message)));
                 }
             }
             case  "CURSOR" : break;
@@ -97,27 +100,11 @@ public class TestController {
         return mapper.writeValueAsString(wrapper);
     }
 
-    private String documentChangeToJson(DocumentChange change) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
-        wrapper.setType("CHANGES");
-        wrapper.setMessage(change);
-        return mapper.writeValueAsString(wrapper);
-    }
-
     private String statusUpdateToJson(StatusUpdate update) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
         wrapper.setType("STATUS");
         wrapper.setMessage(update);
-        return mapper.writeValueAsString(wrapper);
-    }
-
-    private String chatMessageToJson(ChatMessage message) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
-        wrapper.setType("CHAT");
-        wrapper.setMessage(message);
         return mapper.writeValueAsString(wrapper);
     }
 
@@ -145,6 +132,9 @@ public class TestController {
         }
         if (!transformer.getUsers().contains((StompPrincipal)event.getUser())) {
             transformer.addUser((StompPrincipal)event.getUser());
+            template.convertAndSendToUser(event.getUser().getName(),
+                    "/queue/session/" + transformer.getFileId(),
+                    statusUpdateToJson(StatusUpdate.builder().user(event.getUser().getName()).status("YOU").value(transformer.getUsername((StompPrincipal) event.getUser())).build()));
             for (StompPrincipal user : transformer.getUsers()) {
                 if (!user.equals(event.getUser())) {
                     template.convertAndSendToUser(user.getName(),

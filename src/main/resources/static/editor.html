@@ -115,12 +115,13 @@
         <span>ЧАТ</span>
         <button id="chatclose" class="bi bi-x editor-button"></button>
     </div>
-    <div id="chattext"></div>
+    <div id="chattext">
+        <div id="chatreceived"></div>
+        <div id="chatpending"></div>
+    </div>
     <div id="chatinputholder">
-        <form style="flex:1;">
-            <textarea id="chatinput" maxlength="999" placeholder="Напишите сообщение..." aria-label="Напишите сообщение..."></textarea>
-        </form>
-        <button id="chatsend" class="bi bi-send editor-button"></button>
+        <textarea id="chatinput" style="flex:1;" maxlength="999" placeholder="Напишите сообщение..." aria-label="Напишите сообщение..."></textarea>
+        <button id="chatsend" class="bi bi-send editor-button" style="box-shadow: none"></button>
     </div>
 </div>
 

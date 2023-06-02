@@ -142,7 +142,7 @@ function setPane(newPane) {
         lastPositionChangeLength = ev.clipboardData.getData('text/plain').length;
 
         submitChanges(changes);
-        pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
+        pane.dispatchEvent(new Event('input'));
     })
     pane.addEventListener('input', (ev) => {
         ev.preventDefault();

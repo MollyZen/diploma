@@ -369,7 +369,7 @@ public class Transformer {
     }
 
     public ChatMessage addMessage(ChatMessage message) {
-        message.setTimestamp(LocalDateTime.now());
+        message.setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toEpochSecond());
         message.setMessageId(accessPoint.getMessageHead());
         accessPoint.addMessage(message);
         return message;

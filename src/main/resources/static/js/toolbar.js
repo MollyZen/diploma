@@ -17,21 +17,20 @@ function toolbarSetup() {
         var lastName = $('#lastName').text();
         var intials = $('#firstName').text().charAt(0) + $('#lastName').text().charAt(0);
         var profileImage = $('#currentImage').text(intials);
-        curUser = res;
     };
     userAction.apply();
 
     $("#bold-button").click(function () {
-       if (bold){
-           bold = false;
-           enabledStyles.delete(STYLE_CODES.BOLD);
-           $(this).removeClass('active');
-       }
-       else{
-           bold = true;
-           enabledStyles.set(STYLE_CODES.BOLD, 1);
-           $(this).addClass('active');
-       }
+        if (bold){
+            bold = false;
+            enabledStyles.delete(STYLE_CODES.BOLD);
+            $(this).removeClass('active');
+        }
+        else{
+            bold = true;
+            enabledStyles.set(STYLE_CODES.BOLD, 1);
+            $(this).addClass('active');
+        }
     });
     $("#italic-button").click(function () {
         if (italic){
@@ -82,6 +81,7 @@ function toolbarSetup() {
             const liEl = document.createElement('li');
             const div = document.createElement('div');
             div.setAttribute('class', 'option');
+            div.style.fontFamily = value;
             div.appendChild(document.createTextNode(value));
             liEl.appendChild(div);
 
@@ -251,6 +251,27 @@ function toolbarSetup() {
     })
     openChatButton.addEventListener('click', (ev) => {
         chat.style.display = "";
+    })
+
+    const chatSendButton = document.getElementById('chatsend');
+    const chatInput = document.getElementById('chatinput');
+    chatInput.addEventListener('input', (ev) => {
+        chatInput.style.height = "1px";
+        chatInput.style.height = (chatInput.scrollHeight)+"px";
+    })
+    chatInput.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' && !mobileAndTabletCheck()) {
+            ev.preventDefault();
+            chatSendButton.dispatchEvent(new Event('click'));
+        }
+    })
+    chatSendButton.addEventListener('click', (ev) => {
+        const text = chatInput.value.trim();
+        if (text && text.length > 0 && !text.match(/^[\n|\t]$/g)) {
+            chatInput.value = '';
+            submitChatMessage(new ChatMessage(text, null, null, null));
+        }
+        chatInput.focus();
     })
 
     initPages();

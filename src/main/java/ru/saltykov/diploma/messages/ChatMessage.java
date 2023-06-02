@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @Jacksonized
 public class ChatMessage extends CollaborationMessage{
-    LocalDateTime timestamp;
+    Long timestamp;
     Integer messageId;
     String message;
 }

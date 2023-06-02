@@ -4,6 +4,7 @@ let curUser;
 const changesQueue = [];
 const chatQueue = [];
 
+const users = new Map();
 const colours = new Map();
 //TODO: убрать хардкод
 colours.set('MollyZen', HSLtoString(generateHSL('MollyZen')));
@@ -239,6 +240,33 @@ function Changes(user, revision, start) {
     }
 }
 
+function ChatMessage(text, user, timestamp, id) {
+    this.text = text;
+    this.user = user;
+    this.timestamp = timestamp;
+    this.id = id;
+
+    this.toMessageJSON = () => {
+        const obj = {
+            "type" : "CHAT",
+            "message" : {
+                "user": curUser,
+                "message": this.text,
+                "timestamp": null,
+                "messageId":null
+            }
+        }
+        return JSON.stringify(obj);
+    }
+}
+
+function User(user, username, status){
+    this.user = user;
+    this.username = username;
+    this.status = status;
+    this.colour = generateHSL(user);
+}
+
 function accumulateStyling(tokens){
     let res = [];
     let val = tokens.shift();
@@ -251,18 +279,6 @@ function accumulateStyling(tokens){
     return res;
 }
 
-function ChatMessage(user, message, timestamp){
-
-}
-
-function CursorUpdate(user, pos){
-
-}
-
-function StatusUpdate(user, status){
-
-}
-
 //received message processing
 
 const t= setInterval(() => {if (changesQueue.length > 0) submitChanges(changesQueue[0].changes)},1000);
@@ -270,11 +286,74 @@ const t= setInterval(() => {if (changesQueue.length > 0) submitChanges(changesQu
 function processMessage(message) {
     const obj = JSON.parse(message.body);
     const type = obj.type;
+    const messageId = message.headers["message-id"];
     switch (type){
-        case 'CHANGES' : processChanges(message.headers["message-id"], obj); break;
-        case 'CHAT' : break;
+        case 'CHANGES' : processChanges(messageId, obj); break;
+        case 'CHAT' :
+            var d = new Date(0);
+            d.setUTCSeconds(obj.message.timestamp);
+
+            const formattedDate = (d.getDate() < 10 ? '0' : '') + d.getDate() + '.' + (d.getMonth() < 10 ? '0' : '') + (d.getMonth() + 1) + '.' + d.getFullYear();
+            const formattedTime = d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+
+            const rec = document.getElementById('chatreceived');
+            let el;
+            const id = obj.message.messageId;
+            if (document.getElementById(messageId) && obj.message.user === curUser)
+                document.getElementById(messageId).remove();
+
+            const header = document.createElement('div');
+            header.style.backgroundColor = HSLtoString(users.get(obj.message.user).colour);
+            const name = document.createElement('span');
+            name.appendChild(document.createTextNode(users.get(obj.message.user).username + ':'));
+            const icon = document.createElement('span');
+            icon.style.float = 'right';
+            icon.appendChild(document.createTextNode(formattedTime + ', ' + formattedDate));
+            header.appendChild(name);
+            header.appendChild(icon);
+            header.style.padding = '5px';
+
+            const body = document.createElement('div');
+            body.appendChild(document.createTextNode(obj.message.message));
+            body.style.padding = '5px';
+
+            const newPending = document.createElement('div');
+            newPending.appendChild(header);
+            newPending.appendChild(body);
+            newPending.setAttribute('id', 'message' + id);
+
+            el = newPending;
+
+
+            let iterId = id;
+            let done = false;
+            while (!done) {
+                if (id === 0) {
+                    rec.appendChild(el);
+                    done = true;
+                }
+                else if (document.querySelector('#chatreceived #message' + (iterId - 1))){
+                    document.querySelector('#chatreceived #' + (iterId - 1)).after(el);
+                }
+                else {
+                    --iterId;
+                }
+            }
+
+            break;
         case 'CURSOR' : break;
-        case 'STATUS' : break;
+        case 'STATUS' :
+            const user = obj.message.user;
+            if (obj.message.status === 'CONNECTED' || obj.message.status === 'YOU'){
+                const username = obj.message.value;
+                users.set(user, new User(user, username, 'ONLINE'));
+                if (obj.message.status === 'YOU')
+                    curUser = user;
+            }
+            else {
+                users.delete(user);
+            }
+            break;
     }
 }
 
@@ -330,7 +409,7 @@ function processChanges(messageId, obj) {
 
         lastPositionChangeStart = start;
         lastPositionChangeLength = lengthChange;
-        pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
+        pane.dispatchEvent(new Event('input'));
     }
     const nextObj = pending.get(obj.message.revision + 1);
     if (nextObj){
@@ -369,7 +448,31 @@ function submitChanges(changes){
 }
 
 function submitChatMessage(message){
+    const id = makeid(5);
 
+    const header = document.createElement('div');
+    const name = document.createElement('span');
+    name.appendChild(document.createTextNode(users.get(curUser).username + ':'));
+    const icon = document.createElement('i');
+    icon.style.float = 'right';
+    icon.classList.add('bi', 'bi-clock');
+    header.appendChild(name);
+    header.appendChild(icon);
+
+    const body = document.createElement('div');
+    body.appendChild(document.createTextNode(message.text));
+
+    const newPending = document.createElement('div');
+    newPending.setAttribute('id', id);
+    newPending.appendChild(header);
+    newPending.appendChild(body);
+
+    const pendingEl = document.getElementById('chatpending');
+    pendingEl.appendChild(newPending);
+
+    stompClient.send('/app/session/' + fileId,
+        {'message-id': id},
+        message.toMessageJSON());
 }
 
 function submitCursorUpdate(update){
