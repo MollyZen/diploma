@@ -227,13 +227,33 @@ body {
 }
 
 /*chat*/
+#chatopen {
+    z-index:100;
+    position: absolute;
+    bottom: 0;
+    box-sizing: border-box;
+    right: 25px;
+    background-color: var(--main-color);
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    border-radius: 3px;
+    border: none;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+    width: 80px;
+    height: 60px;
+    justify-content: center;
+    font-size: 16px;
+}
+
 #chat {
     z-index:101;
     bottom:0;
     position:absolute;
-    right:35px;
+    right:25px;
     box-shadow: 0 0 0 1px rgba(99,114,130,.16),0 8px 16px rgba(27,39,51,.08);
-    width: 400px;height: 300px;
+    width: 400px;
+    /*height: 300px;*/
     border-top-left-radius:3px;
     border-top-right-radius:3px;
     display: flex;
@@ -241,15 +261,40 @@ body {
     background-color: white;
 }
 
-#chatinputholder {
-    padding: 5px;
-    background-color: inherit;
-    box-sizing: border-box;
+#chattitle {
+    line-height: 44px;
+    height: 44px;
+    padding: 0 7px;
+    justify-content: space-between;
+    display: flex;
+    background-color: var(--main-color);
+    border-top-left-radius:inherit;
+    border-top-right-radius:inherit;
+    align-items: baseline;
 }
 
 #chattext {
     border-bottom: 1px solid var(--background-color);
     border-top: 1px solid var(--background-color);
+    padding: 0;
+    overflow-y: auto;
+    flex: 1 auto;
+    box-sizing: border-box;
+    background-color: white;
+    min-height: 200px;
+    height: fit-content;
+    max-height: 300px;
+    font-size: var(--chat-font-size);
+}
+
+#chatinputholder {
+    padding: 5px;
+    background-color: inherit;
+    box-sizing: border-box;
+    overflow-y: auto;
+    display: flex;
+    justify-content: end;
+    align-items: end;
 }
 
 #chatinput {
@@ -260,4 +305,9 @@ body {
     padding: 8px 10px;
     border: none;
     outline: 0;
+    font-size: var(--chat-font-size);
+    min-height: var(--chat-font-size);
+    height: 28px;
+    border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
