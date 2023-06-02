@@ -35,7 +35,6 @@ body {
     align-items: center;
     flex-shrink: 0;
     display: flex;
-    /*padding-top: 10px;*/
 }
 
 .menuitem {
@@ -105,7 +104,6 @@ body {
 .select_wrap {
     width: 10ch;
     height: 0;
-    /*margin: 15px auto;*/
     position: relative;
     user-select: none;
     display: inline-block;
@@ -126,14 +124,12 @@ body {
 }
 
 .select_wrap .default_option li {
-    /*padding: 10px 20px;*/
-    /*min-height: 30px;*/
+
 }
 
 .select_wrap .default_option:before {
     content: "";
     position: absolute;
-    /*top: 18px;*/
     top: 3px;
     right: 10px;
     width: 4px;
@@ -145,8 +141,6 @@ body {
 
 .select_wrap .select_ul {
     position: absolute;
-    /*top: 55px;*/
-    /*left: 0;*/
     width: 100%;
     background: #fff;
     border-radius: 5px;
@@ -185,7 +179,6 @@ body {
 }
 
 .select_wrap.active .default_option:before {
-    /*top: 25px;*/
     top: 7px;
     transform: rotate(-225deg);
 }
@@ -203,7 +196,6 @@ body {
     color: #fff;
     text-align: center;
     line-height: 30px;
-    /*margin: 20px 0;*/
     cursor: pointer;
 }
 
@@ -211,15 +203,12 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    /*width: 50px;*/
     display: none;
     z-index: 9999;
     background: black;
     color: white;
     border-radius: 0.25rem;
-    /*padding: 0.4rem;*/
     padding: 5px;
-    /*font-size: 0.8rem;*/
     font-size: 10px;
     text-align: center;
     text-transform: uppercase;
@@ -240,7 +229,7 @@ body {
     border-radius: 3px;
     border: none;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
-    width: 80px;
+    width: 10%;
     height: 60px;
     justify-content: center;
     font-size: 16px;
@@ -252,8 +241,7 @@ body {
     position:absolute;
     right:25px;
     box-shadow: 0 0 0 1px rgba(99,114,130,.16),0 8px 16px rgba(27,39,51,.08);
-    width: 400px;
-    /*height: 300px;*/
+    width: 40%;
     border-top-left-radius:3px;
     border-top-right-radius:3px;
     display: flex;
@@ -276,7 +264,6 @@ body {
 #chattext {
     border-bottom: 1px solid var(--background-color);
     border-top: 1px solid var(--background-color);
-    padding: 0;
     overflow-y: auto;
     flex: 1 auto;
     box-sizing: border-box;
@@ -301,13 +288,16 @@ body {
     box-sizing: border-box;
     background-color: var(--background-color);
     width:100%;
-    resize:vertical;
+    resize:none;
     padding: 8px 10px;
     border: none;
     outline: 0;
     font-size: var(--chat-font-size);
     min-height: var(--chat-font-size);
-    height: 28px;
+    height: 31px;
     border-radius: 3px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+    word-break: break-word;
+    overflow-y: auto;
+    max-height: calc(6 * var(--chat-font-size));
 }
