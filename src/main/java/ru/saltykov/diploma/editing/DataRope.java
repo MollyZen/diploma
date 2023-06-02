@@ -130,15 +130,13 @@ public class DataRope {
                         ropeRoot = concat(newNode, ropeRoot);
                 }
                 else {
-                    if (pos == ropeRoot.getLength()) {
-                        if (ropeRoot.getRight() == null)
-                            ropeRoot.setRight(newNode);
-                        else if (ropeRoot.getLeft() == null) {
-                            ropeRoot.setLeft(ropeRoot.getRight());
-                            ropeRoot.setRight(newNode);
-                        } else
-                            ropeRoot = concat(ropeRoot, newNode);
-                    }
+                    if (ropeRoot.getRight() == null)
+                        ropeRoot.setRight(newNode);
+                    else if (ropeRoot.getLeft() == null) {
+                        ropeRoot.setLeft(ropeRoot.getRight());
+                        ropeRoot.setRight(newNode);
+                    } else
+                        ropeRoot = concat(ropeRoot, newNode);
                 }
             }
             else
