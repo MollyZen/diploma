@@ -173,7 +173,6 @@ function setPane(newPane) {
     })
     if (mobileAndTabletCheck()) {
         pane.setAttribute('contenteditable', 'false');
-        document.getElementById()
     }
 }
 
@@ -327,8 +326,8 @@ function normalizeHash(hash, min, max){
 
 function generateHSL(name) {
     const hRange = [0, 360];
-    const sRange = [50, 75];
-    const lRange = [25, 60];
+    const sRange = [50, 60];
+    const lRange = [75, 80];
 
     const hash = getHashOfString(name);
     const h = normalizeHash(hash, hRange[0], hRange[1]);
