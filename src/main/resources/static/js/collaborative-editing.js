@@ -328,12 +328,16 @@ function processMessage(message) {
             let iterId = id;
             let done = false;
             while (!done) {
-                if (id === 0) {
-                    rec.appendChild(el);
+                if (iterId === 0) {
+                    if (rec.childNodes.length === 0)
+                        rec.appendChild(el);
+                    else
+                        rec.childNodes[0].before(el);
                     done = true;
                 }
                 else if (document.querySelector('#chatreceived #message' + (iterId - 1))){
                     document.querySelector('#chatreceived #' + (iterId - 1)).after(el);
+                    done = true;
                 }
                 else {
                     --iterId;
