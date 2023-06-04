@@ -350,9 +350,13 @@ function processMessage(message) {
             const user = obj.message.user;
             if (obj.message.status === 'CONNECTED' || obj.message.status === 'YOU'){
                 const username = obj.message.value;
-                users.set(user, new User(user, username, 'ONLINE'));
-                if (obj.message.status === 'YOU')
+                let newUser = new User(user, username, 'ONLINE');
+                users.set(user, newUser);
+                if (obj.message.status === 'YOU') {
                     curUser = user;
+                    document.getElementById('currentImage').style.background = HSLtoString(newUser.colour);
+                    document.getElementById('currentImage').textContent = newUser.username.split(' ').map(e => e.charAt(0)).join('');
+                }
             }
             else {
                 users.delete(user);

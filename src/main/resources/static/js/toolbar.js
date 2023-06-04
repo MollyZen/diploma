@@ -12,14 +12,21 @@ function toolbarSetup() {
     const userAction = async () => {
         const response = await fetch('/rest/getUsername');
         const res = await response.text();
-        $('#firstName').text(res);
-        var firstName = $('#firstName').text();
-        var lastName = $('#lastName').text();
-        var intials = $('#firstName').text().charAt(0) + $('#lastName').text().charAt(0);
-        var profileImage = $('#currentImage').text(intials);
+        if (res == null || res === ''){
+            const link = document.createElement('a');
+            link.setAttribute('href', '/login?redirect=' + encodeURIComponent(window.location.href))
+
+            const button = document.createElement('button');
+            button.classList.add('editor-button');
+            button.appendChild(document.createTextNode('Войти'));
+            button.addEventListener('click', (ev) => {
+                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.href);
+            })
+            link.appendChild(button);
+            document.getElementById('images').before(link);
+        }
     };
     userAction.apply();
-
     $("#bold-button").click(function () {
         if (bold){
             bold = false;
