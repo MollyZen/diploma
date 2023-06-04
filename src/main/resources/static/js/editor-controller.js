@@ -307,7 +307,7 @@ function insertNewLine(pos){
                 modelViewRelMap.set(newPar.childNodes[newPar.childNodes.length - 1], prevViewEls);
                 modelViewRelMap.set(added[0], newPar.childNodes[newPar.childNodes.length - 1]);
             }
-            else {
+            else if (prevView) {
                 newPar = addParagraph(prevView.parentElement, null, null, true);
                 newPar.childNodes[0].remove();
                 let el = prevView.previousSibling;
@@ -325,6 +325,11 @@ function insertNewLine(pos){
                 prevViewEls.push(added[0]);
                 modelViewRelMap.set(prevView, prevViewEls);
                 modelViewRelMap.set(added[0], prevView);
+            }
+            else {
+                newPar = addParagraph(nextView.parentElement, null, null, true);
+                modelViewRelMap.set(newPar.firstChild, [added[0]]);
+                modelViewRelMap.set(added[0], newPar.firstChild);
             }
         }
     }
