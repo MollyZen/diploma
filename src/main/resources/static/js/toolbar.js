@@ -27,56 +27,114 @@ function toolbarSetup() {
         }
     };
     userAction.apply();
-    $("#bold-button").click(function () {
+    const boldButton = document.getElementById('bold-button');
+    boldButton.addEventListener('click', (ev) => {
         if (bold){
             bold = false;
             enabledStyles.delete(STYLE_CODES.BOLD);
-            $(this).removeClass('active');
+            boldButton.classList.remove('active');
         }
         else{
             bold = true;
             enabledStyles.set(STYLE_CODES.BOLD, 1);
-            $(this).addClass('active');
+            boldButton.classList.add('active');
         }
-    });
-    $("#italic-button").click(function () {
+    })
+    const italicButton = document.getElementById('italic-button');
+    italicButton.addEventListener('click', (ev) => {
         if (italic){
             italic = false;
             enabledStyles.delete(STYLE_CODES.ITALIC);
 
-            $(this).removeClass('active');
+            italicButton.classList.remove('active');
         }
         else{
             italic = true;
             enabledStyles.set(STYLE_CODES.ITALIC, 1);
-            $(this).addClass('active');
+            italicButton.classList.add('active');
         }
-    });
-    $("#underline-button").click(function () {
+    })
+    const underlineButton = document.getElementById('underline-button');
+    underlineButton.addEventListener('click', (ev) => {
         if (underline){
             underline = false;
             enabledStyles.delete(STYLE_CODES.UNDERLINE);
-            $(this).removeClass('active');
+            underlineButton.classList.remove('active');
         }
         else{
             underline = true;
             enabledStyles.set(STYLE_CODES.UNDERLINE, 1);
-            $(this).addClass('active');
+            underlineButton.classList.add('active');
         }
-    });
-    $("#strikethrough-button").click(function () {
+    })
+    const strikeButton = document.getElementById('strikethrough-button');
+    strikeButton.addEventListener('click', (ev) => {
         if (strikethrough){
             strikethrough = false;
             enabledStyles.delete(STYLE_CODES.STRIKETHROUGH);
-            $(this).removeClass('active');
+            strikeButton.classList.remove('active');
         }
         else{
             strikethrough = true;
             enabledStyles.set(STYLE_CODES.STRIKETHROUGH, 1);
-            $(this).addClass('active');
+            strikeButton.classList.add('active');
         }
-    });
+    })
 
+    window.addEventListener('keydown', function (ev){
+        if (ev.ctrlKey){
+
+            if (ev.altKey){
+                if (ev.key.toLowerCase() === 'u'){
+                    if (strikethrough){
+                        strikethrough = false;
+                        enabledStyles.delete(STYLE_CODES.STRIKETHROUGH);
+                        strikeButton.classList.remove('active');
+                    }
+                    else{
+                        strikethrough = true;
+                        enabledStyles.set(STYLE_CODES.STRIKETHROUGH, 1);
+                        strikeButton.classList.add('active');
+                    }
+                }
+            }
+            else {
+                if (ev.key.toLowerCase() === 'b') {
+                    if (bold) {
+                        bold = false;
+                        enabledStyles.delete(STYLE_CODES.BOLD);
+                        boldButton.classList.remove('active');
+                    } else {
+                        bold = true;
+                        enabledStyles.set(STYLE_CODES.BOLD, 1);
+                        boldButton.classList.add('active');
+                    }
+                } else if (ev.key.toLowerCase() === 'i') {
+                    if (italic) {
+                        italic = false;
+                        enabledStyles.delete(STYLE_CODES.ITALIC);
+
+                        italicButton.classList.remove('active');
+                    } else {
+                        italic = true;
+                        enabledStyles.set(STYLE_CODES.ITALIC, 1);
+                        italicButton.classList.add('active');
+                    }
+                } else if (ev.key.toLowerCase() === 'u') {
+                    ev.preventDefault();
+                    if (underline) {
+                        underline = false;
+                        enabledStyles.delete(STYLE_CODES.UNDERLINE);
+                        underlineButton.classList.remove('active');
+                    } else {
+                        underline = true;
+                        enabledStyles.set(STYLE_CODES.UNDERLINE, 1);
+                        underlineButton.classList.add('active');
+                    }
+                }
+            }
+        }
+    })
 
     const userAction1 = async () => {
         const response = await fetch('/rest/fontCodes');
@@ -93,14 +151,32 @@ function toolbarSetup() {
             liEl.appendChild(div);
 
             liEl.addEventListener('click', () => {
-                var currentele = $(liEl).html();
-                const wrap = $(liEl).parents(".select_wrap");
-                wrap.children("ul .default_option").html(currentele);
-                wrap.removeClass("active");
+                let parent = liEl.parentElement;
+                while (!parent.classList.contains('select_wrap')) {
+                    parent = parent.parentElement;
+                }
+                const wrap = parent;
+                const nowrap = document.createElement('div');
+                nowrap.classList.add('nowrap');
+                const copy = liEl.firstChild.cloneNode(true);
+                nowrap.textContent = copy.textContent;
+                copy.textContent = null;
+                copy.appendChild(nowrap);
+
+                wrap.querySelector('ul .default_option').firstChild.remove();
+                wrap.querySelector('ul .default_option')
+                    .firstChild.before(copy);
+                wrap.classList.remove('active');
             })
 
             if (key === '0' || key === 0) {
-                fontEl.appendChild(liEl.cloneNode(true));
+                const nowrap = document.createElement('div');
+                nowrap.classList.add('nowrap');
+                const copy = liEl.firstChild.cloneNode(true);
+                nowrap.textContent = copy.textContent;
+                copy.textContent = null;
+                copy.appendChild(nowrap);
+                fontEl.firstChild.before(copy);
                 font = parseInt(key);
                 enabledStyles.set(STYLE_CODES.FONT, font);
             }
@@ -121,12 +197,24 @@ function toolbarSetup() {
         font = fontCodes.get($(this).children("div .option").text().trim());
         enabledStyles.set(STYLE_CODES.FONT, font);
     });
-    $(".select_wrap .select_ul li").click(function () {
-        var currentele = $(this).html();
-        const wrap = $(this).parents(".select_wrap");
-        wrap.children("ul .default_option").html(currentele);
-        wrap.removeClass("active");
-    })
+    document.querySelector(".select_wrap")
+    document.querySelectorAll(".select_wrap .select_ul li").forEach((val) => val.addEventListener('click', (ev) => {
+        let parent = ev.target.parentElement;
+        while (!parent.classList.contains('select_wrap')) {
+            parent = parent.parentElement;
+        }
+        const wrap = parent;
+        const tmp = wrap.querySelector('ul .default_option');
+        if (tmp.firstChild.nodeName === '#text'){
+            tmp.firstChild.remove();
+        }
+        tmp.firstChild.remove();
+        if (ev.target.tagName === 'LI')
+            tmp.firstChild.before(ev.target.firstChild.cloneNode(true));
+        else
+            tmp.firstChild.before(ev.target.cloneNode(true));
+        wrap.classList.remove('active');
+    }))
     $("#zoom").on('DOMSubtreeModified', function () {
         const val = Number($(this).children("div .option").text().replace('%', '').trim()) / 100.;
         const pane = $("#pane");

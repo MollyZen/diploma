@@ -24,27 +24,24 @@
     <script src="/static/js/editor-controller.js"></script>
 </head>
 
-<body onload="toolbarSetup();initController();connect();addUser('MollyZen')" role="application" style="background-color: var(--background-color); overflow: hidden;">
-<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
-    enabled. Please enable
-    Javascript and reload this page!
+<body onload="toolbarSetup();initController();connect();" role="application">
+<noscript><h2 style="color: #ff0000">
+    Похоже, что у вас выключен Javascript. Без него данная страница работать не будет.
 </h2></noscript>
-<div id="banner" role="banner" class="banner" style="width: 100%; display: flex; flex-direction: column;">
+<div id="banner" role="banner" class="banner">
     <div id="top_banner" class="top_banner">
         <a href="/file-picker"><img src="/static/img/icon.svg" style="object-fit:contain; margin-right: 10px;" width="40" height="40" /></a>
         <div class="menubar">
             <div class="menubar_left" role="menubar" style="display: flex; ">
                 <div style="display: flex; flex-direction: column;">
                     <input value="НАЗВАНИЕ ФАЙЛА" type="text" spellcheck="false" autocomplete="off">
-                    <div id="top-menu" style="display: block; overflow-x: hidden;">
+                    <div id="top-menu">
                         <div class="menuitem" role="menuitem">Файл</div>
                         <div class="menuitem" role="menuitem">Помощь</div>
                     </div>
                 </div>
             </div>
             <div class="menu_right">
-                <span id="firstName"></span>
-                <span id="lastName"></span>
                 <button class="bi bi-share editor-button"></button>
                 <div id="images">
                     <div id="currentImage" class="profileImage"></div>
@@ -54,23 +51,25 @@
     </div>
     <div id="toolbar" role="toolbar" class="toolbar">
         <ul class="toolbar_left" role="toolbar">
-            <button id="bold-button" class="bi-type-bold editor-button"></button>
-            <button id="italic-button" class="bi-type-italic editor-button"></button>
-            <button id="underline-button" class="bi-type-underline editor-button"></button>
-            <button id="strikethrough-button" class="bi-type-strikethrough editor-button"></button>
+            <button id="bold-button" title="Полужирный (Ctrl + B)" class="bi-type-bold editor-button"></button>
+            <button id="italic-button" title="Курсив (Ctrl + I)" class="bi-type-italic editor-button"></button>
+            <button id="underline-button" title="Подчеркнутый (Ctrl + U)" class="bi-type-underline editor-button"></button>
+            <button id="strikethrough-button" title="Зачеркнутый (Ctrl + Alt + U)" class="bi-type-strikethrough editor-button"></button>
 
             <span class="separator"></span>
 
             <div class="buttons-with-input">
                 <button class="bi-dash-square-fill editor-button" id="font-size-minus"></button>
-                <input id="font-size-input" type="text" autocomplete="false" style="text-align:center;min-height:28px; padding: 0" size="1" />
+                <input id="font-size-input" type="text" autocomplete="false" size="4" />
                 <button class="bi-plus-square-fill editor-button" id="font-size-plus"></button>
             </div>
 
             <span class="separator"></span>
 
             <div class="select_wrap">
-                <ul id="font" class="default_option"></ul>
+                <ul id="font" class="default_option">
+                    <div class="arrow"></div>
+                </ul>
                 <ul class="select_ul"></ul>
             </div>
 
@@ -78,17 +77,18 @@
 
             <div class="select_wrap">
                 <ul id="zoom" class="default_option">
-                    <li><div class="option">100%</div></li>
+                    <div class="option"><div class="nowrap">100%</div></div>
+                    <div class="arrow"></div>
                 </ul>
                 <ul class="select_ul">
-                    <li><div class="option">25%</div></li>
-                    <li><div class="option">50%</div></li>
-                    <li> <div class="option"> 75%</div></li>
-                    <li><div class="option">100%</div></li>
-                    <li><div class="option">125%</div></li>
-                    <li><div class="option">150%</div></li>
-                    <li><div class="option">175%</div></li>
-                    <li><div class="option">200%</div></li>
+                    <li><div class="option"><div class="nowrap">25%</div></div></li>
+                    <li><div class="option"><div class="nowrap">50%</div></div></li>
+                    <li><div class="option"><div class="nowrap">75%</div></div></li>
+                    <li><div class="option"><div class="nowrap">100%</div></div></li>
+                    <li><div class="option"><div class="nowrap">125%</div></div></li>
+                    <li><div class="option"><div class="nowrap">150%</div></div></li>
+                    <li><div class="option"><div class="nowrap">175%</div></div></li>
+                    <li><div class="option"><div class="nowrap">200%</div></div></li>
                 </ul>
             </div>
 
@@ -100,28 +100,28 @@
     </div>
 </div>
 
-<div id="pane-holder" style="width: 100%; overflow: auto;">
-    <div id="tmp" style="margin:30px auto; overflow: hidden; height: fit-content; width: fit-content;outline: 1px solid lightgray;border-radius: 3px;">
-        <div id="pane" contenteditable="true" spellcheck="false" style="overflow: hidden; transform-origin: top left; margin: 0 0; padding: 0 0; height: fit-content; width: fit-content; position: relative; z-index: 1; word-break: break-word; white-space: break-spaces;">
+<div id="pane-holder">
+    <div id="tmp">
+        <div id="pane" contenteditable="true" spellcheck="false">
         </div>
     </div>
 </div>
-<button id="chatopen">
-    <span>Чат</span>
+<button id="chatopen" type="button">
+    <span><strong>Чат</strong></span>
     <span class="bi bi-chat-dots"></span>
 </button>
 <div id="chat" style="display: none">
     <div id="chattitle">
-        <span>ЧАТ</span>
-        <button id="chatclose" class="bi bi-x editor-button"></button>
+        <span><strong>ЧАТ</strong></span>
+        <button id="chatclose" type="button" class="bi bi-x editor-button"></button>
     </div>
     <div id="chattext">
         <div id="chatreceived"></div>
         <div id="chatpending"></div>
     </div>
     <div id="chatinputholder">
-        <textarea id="chatinput" style="flex:1;" maxlength="999" placeholder="Напишите сообщение..." aria-label="Напишите сообщение..."></textarea>
-        <button id="chatsend" class="bi bi-send editor-button" style="box-shadow: none"></button>
+        <textarea id="chatinput" maxlength="999" placeholder="Напишите сообщение..." aria-label="Напишите сообщение..."></textarea>
+        <button id="chatsend" type="button" class="bi bi-send editor-button"></button>
     </div>
 </div>
 

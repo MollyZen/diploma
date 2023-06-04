@@ -3,13 +3,16 @@
 }
 
 body {
-    background-color: white;
     margin: 0;
+    background-color: var(--background-color);
+    overflow: hidden;
 }
 
 .banner {
     display: flex;
     background-color: var(--main-color);
+    width: 100%;
+    flex-direction: column;
 }
 
 .top_banner {
@@ -18,6 +21,11 @@ body {
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
     align-items: center;
     padding: 10px 10px;
+}
+
+#top-menu {
+    display: block;
+    overflow-x: hidden;
 }
 
 .menubar {
@@ -55,11 +63,13 @@ body {
 }
 
 .toolbar ul.toolbar_left {
+    display: inline-flex;
+    gap: 10px;
     align-items: center;
     padding-left: 5px;
     margin: auto 0;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
 .toolbar ul.toolbar_right {
@@ -87,7 +97,8 @@ body {
 }
 
 .buttons-with-input {
-    display: inline-block;
+    display: inline-flex;
+    gap: 10px;
 }
 
 .separator {
@@ -100,10 +111,18 @@ body {
     vertical-align: middle;
 }
 
+#font-size-input {
+    text-align: center;
+    min-height: 28px;
+    padding: 0;
+    border-radius: 3px;
+    border: none;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
 /*Font selector*/
 .select_wrap {
-    width: 10ch;
-    height: 0;
+    width: 12ch;
     position: relative;
     user-select: none;
     display: inline-block;
@@ -121,22 +140,44 @@ body {
     border-radius: 3px;
     position: relative;
     cursor: pointer;
+    display: flex;
+    font-size: 17px;
+    height: 28px;
+    justify-content: space-between;
 }
 
-.select_wrap .default_option li {
-
+.select_wrap .default_option .option {
+    height: 28px;
+    width: 10ch;
 }
 
-.select_wrap .default_option:before {
+.select_wrap .default_option .option .nowrap {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 10px;
+}
+
+.select_wrap .default_option .arrow {
+    width: 2ch;
+}
+
+.select_wrap .default_option .arrow:before {
     content: "";
     position: absolute;
-    top: 3px;
-    right: 10px;
+    top: 7px;
     width: 4px;
     height: 4px;
     border: 2px solid;
     border-color: transparent transparent #000000 #000000;
     transform: rotate(-45deg);
+}
+
+.select_wrap.active .default_option .arrow:before {
+    top: 13px;
+    transform: rotate(-225deg);
 }
 
 .select_wrap .select_ul {
@@ -145,24 +186,31 @@ body {
     background: #fff;
     border-radius: 5px;
     display: none;
+    border: none;
+    z-index: 3;
 }
 
 .select_wrap .select_ul li {
-    padding: 10px 20px;
+    padding: 10px 10px;
     cursor: pointer;
     position: relative;
     z-index: 3;
     background-color: white;
+    width: 15ch;
+    white-space: nowrap;
+    border: none;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
-.select_wrap .select_ul li:first-child:hover {
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+.select_wrap .select_ul li:first-child {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.6)
 }
 
-.select_wrap .select_ul li:last-child:hover {
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
+.select_wrap .select_ul li:last-child {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
 }
 
 .select_wrap .select_ul li:hover {
@@ -172,30 +220,51 @@ body {
 .select_wrap .option {
     display: flex;
     align-items: center;
+    width: 15ch;
 }
 
 .select_wrap.active .select_ul {
     display: block;
 }
 
-.select_wrap.active .default_option:before {
-    top: 7px;
-    transform: rotate(-225deg);
-}
-
 [contenteditable] {
     outline: 0 solid transparent;
 }
 
+#tmp {
+    margin:30px auto;
+    overflow: hidden;
+    height: fit-content;
+    width: fit-content;
+    outline: 1px solid lightgray;
+    border-radius: 3px;
+}
+
+#pane-holder {
+    width: 100%;
+    overflow: auto;
+}
+
+#pane {
+    overflow: hidden;
+    transform-origin: top left;
+    margin: 0 0;
+    padding: 0 0;
+    height: fit-content;
+    width: fit-content;
+    position: relative;
+    z-index: 1;
+    word-break: break-word;
+    white-space: break-spaces;
+}
+
 .profileImage {
-    width: 40px;
-    height: 40px;
+    width: var(--profile-image-size);
+    height: var(--profile-image-size);
     border-radius: 50%;
-    background: #512DA8;
-    font-size: 10px;
     color: #fff;
     text-align: center;
-    line-height: 30px;
+    line-height: var(--profile-image-size);
     cursor: pointer;
 }
 
@@ -233,6 +302,7 @@ body {
     height: 60px;
     justify-content: center;
     font-size: 16px;
+    align-items: center;
 }
 
 #chat {
@@ -300,4 +370,9 @@ body {
     word-break: break-word;
     overflow-y: auto;
     max-height: calc(6 * var(--chat-font-size));
+    flex:1;
+}
+
+#chatsend {
+    box-shadow: none;
 }

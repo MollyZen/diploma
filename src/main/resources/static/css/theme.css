@@ -2,4 +2,9 @@
     --main-color: steelblue;
     --background-color: #d5e8ef;
     --chat-font-size: 13px;
+    --profile-image-size: 40px;
+}
+
+body *{
+    font-family: "Courier New", serif;
 }
