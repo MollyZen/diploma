@@ -26,6 +26,7 @@ body {
 #top-menu {
     display: block;
     overflow-x: hidden;
+    padding-bottom: 2px;
 }
 
 .menubar {
@@ -53,6 +54,7 @@ body {
     background-color: white;
     height: auto;
     border-radius: 3px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
 .toolbar {
@@ -144,6 +146,7 @@ body {
     font-size: 17px;
     height: 28px;
     justify-content: space-between;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
 .select_wrap .default_option .option {
@@ -266,6 +269,7 @@ body {
     text-align: center;
     line-height: var(--profile-image-size);
     cursor: pointer;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
 .tooltip {
@@ -332,8 +336,10 @@ body {
 }
 
 #chattext {
+    display: inline-block;
     border-bottom: 1px solid var(--background-color);
     border-top: 1px solid var(--background-color);
+    word-break: break-word;
     overflow-y: auto;
     flex: 1 auto;
     box-sizing: border-box;
