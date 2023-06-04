@@ -206,7 +206,7 @@ public class DataRope {
         TreeNode affected = start.getFirst();
         int remainingPos = pos - start.getSecond();
         if (remainingPos < 0)
-            remainingPos = ropeRoot.getLength() - Math.abs(pos - start.getSecond());
+            remainingPos = Math.abs(pos - start.getSecond());
 
         int remainingLength = length;
 
@@ -228,7 +228,7 @@ public class DataRope {
         }
 
         if (remainingPos > 0){
-            int toDelete =  Math.max(0, Math.min(nodeLength, remainingLength));
+            int toDelete =  Math.max(0, Math.min(nodeLength - remainingPos, remainingLength));
             remainingLength -= toDelete;
             changed.add(Pair.of(lastNode, lastNode.getText()));
             deletePartFromTextNode(lastNode, remainingPos, toDelete);

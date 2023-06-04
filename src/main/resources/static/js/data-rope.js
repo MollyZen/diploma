@@ -214,7 +214,7 @@ function ropeDeleteText(pos, length) {
     let affected = start[0];
     let remainingPos = pos - start[1];
     if (remainingPos < 0)
-        remainingPos = ropeRoot.getLength() -Math.abs(pos - start[1]);
+        remainingPos = Math.abs(pos - start[1]);
 
     let remainingLength = length;
 
@@ -239,7 +239,7 @@ function ropeDeleteText(pos, length) {
     }
 
     if (remainingPos > 0) {
-        let toDelete = clamp(remainingLength, 0, nodeLength);
+        let toDelete = clamp(remainingLength, 0, nodeLength - remainingPos);
         remainingLength -= toDelete;
         changed.push({el : lastNode, before : lastNode.text});
         if (lastNode.text.match(/[\n]/g))
