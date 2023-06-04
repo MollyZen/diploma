@@ -26,21 +26,6 @@ function initController() {
     modelViewRelMap.set(initialSpan, [modelEl]);
 }
 
-function testChangesDisplay() {
-
-    handleTextInput('govno ', null, 0);
-    handleTextInput('zhopa ', null, 0);
-    handleTextInput('suka ', null, 0);
-
-    handleTextInput('blya', null, 17);
-
-    handleTextInput('after suka ', null, 5);
-    handleTextInput('aaa ', null, 16);
-
-    handleTextInput('sss', null, 1);
-
-}
-
 function validateModelView() {
     let modelString = getFullString(ropeRoot);
     let viewString = '';
@@ -283,7 +268,7 @@ function insertNewLine(pos){
             modelViewRelMap.set(newPar.childNodes[0], [added[0]]);
         }
         else if (nextEl && nextEl.text === '\n') {
-            newPar = addParagraph(modelViewRelMap.get(nextEl).parentNode, null, null, false);
+            newPar = addParagraph(modelViewRelMap.get(nextEl).parentNode, null, prevEl ? prevEl.style : nextEl.style, false);
             const nextView = modelViewRelMap.get(nextEl);
             const nextViewEls = modelViewRelMap.get(nextView);
 
@@ -455,7 +440,7 @@ function insertTab(pos){
         const nextView = modelViewRelMap.get(nextEl);
 
         if (prevView === nextView){
-            const newTextNode = createNewTextNode(prevView, null, null, true, false);
+            const newTextNode = createNewTextNode(prevView, null, prevEl.style, true, false);
 
             const id = prevViewEls.findIndex(val => val === prevEl);
             const lastEls = prevViewEls.splice(id + 1, prevViewEls.length - id - 1);
@@ -479,8 +464,12 @@ function insertTab(pos){
             const pre = document.createElement('pre');
             pre.setAttribute('class', 'tab');
             pre.appendChild(document.createTextNode('\t'));
-            if (prevView) prevView.after(pre);
-            else nextView.before(pre);
+            if (nextView != null && prevEl != null && prevEl.text === '\n')
+                nextView.parentElement.firstChild.before(pre);
+            else if (prevView)
+                prevView.after(pre);
+            else
+                nextView.before(pre);
 
             modelViewRelMap.set(pre, [added[0]]);
             modelViewRelMap.set(added[0], pre);
@@ -528,7 +517,7 @@ function deleteText(pos, length){
             modelViewRelMap.delete(val.el);
         }
         else {
-            let offset = viewEls[id - 1] ? viewEls[id - 1].getOffset() + viewEls[id - 1].getLength() : 0;
+            let offset = viewEls[id - 1] ? viewEls[id - 1].getOffset() - viewEls[0].getOffset() + viewEls[id - 1].getLength() : 0;
             if (val.el.text) {
                 removeFromTextNode(view, offset, val.before.length);
                 appendToTextNode(view, offset, val.el.text);

@@ -36,12 +36,16 @@ function Changes(user, revision, start) {
     this.sent = false;
 
     this.skipText = (length, style) => {
-        styleStringToArr(style).forEach(val => this.tokens.push('*' + val.code + ':' + val.value));
+        styleStringToArr(style ?? '').forEach(val => {
+            if (val.code) this.tokens.push('*' + val.code + ':' + val.value)
+        });
         this.tokens.push('=' + length);
         return this;
     }
     this.addText = (text, style) => {
-        styleStringToArr(style).forEach(val => this.tokens.push('*' + val.code + ':' + val.value));
+        styleStringToArr(style ?? '').forEach(val => {
+            if (val.code) this.tokens.push('*' + val.code + ':' + val.value)
+        });
         this.tokens.push('+' + text.length);
         this.text += text;
         return this;

@@ -54,7 +54,7 @@ function setPane(newPane) {
             }
 
             submitChanges(changes);
-            pane.dispatchEvent(new Event('input'/*, {bubbles:true}*/));
+            pane.dispatchEvent(new Event('input'));
         }
         else if (ev.key === 'Enter'){
             ev.preventDefault();

@@ -1,14 +1,11 @@
 package ru.saltykov.diploma.editing;
 
-import com.sun.source.tree.Tree;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class DataRope {

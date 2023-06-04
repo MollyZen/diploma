@@ -4,15 +4,14 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.data.util.Pair;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.config.StompPrincipal;
 import ru.saltykov.diploma.messages.ChatMessage;
 import ru.saltykov.diploma.messages.DocumentChange;
 import ru.saltykov.diploma.storage.DataStorage;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -97,6 +96,7 @@ public class Transformer {
                         rope.ropeDeleteText(pos, token.getValue());
                     }
                     case AllowedTokens.CHAR_KEPT -> {
+                        pos += token.getValue();
                         //TODO: здесь и во фронте сделать
                     }
                     case AllowedTokens.APPLY_FORMATTING -> {
@@ -113,15 +113,20 @@ public class Transformer {
             if (lastFormatting.equals(node.getStyle()))
                 cnt += node.getText().length();
             else{
-                builder.append("*").append(lastFormatting.replaceAll(" ", "*")).append("+").append(cnt);
+                String f = lastFormatting.replaceAll(" ", "*");
+                if (f.length() > 0) f = "*" + f;
+                builder.append(f).append("+").append(cnt);
                 cnt = node.getText().length();
                 lastFormatting = node.getStyle();
             }
             resText.append(node.getText());
             node = node.nextTextNode();
         }
-        if (cnt > 0)
-            builder.append("*").append(lastFormatting.replaceAll(" ", "*")).append("+").append(cnt);
+        if (cnt > 0) {
+            String f = lastFormatting.replaceAll(" ", "*");
+            if (f.length() > 0) f = "*" + f;
+            builder.append(f).append("+").append(cnt);
+        }
 
         return "0+" + resText.length() + "#" + builder.toString() + "#" + resText.toString();
     }
