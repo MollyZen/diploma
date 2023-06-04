@@ -336,7 +336,7 @@ function processMessage(message) {
                     done = true;
                 }
                 else if (document.querySelector('#chatreceived #message' + (iterId - 1))){
-                    document.querySelector('#chatreceived #' + (iterId - 1)).after(el);
+                    document.querySelector('#chatreceived #message' + (iterId - 1)).after(el);
                     done = true;
                 }
                 else {
