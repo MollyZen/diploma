@@ -206,7 +206,7 @@ public class DataRope {
         TreeNode affected = start.getFirst();
         int remainingPos = pos - start.getSecond();
         if (remainingPos < 0)
-            remainingPos = Math.abs(pos - start.getSecond());
+            remainingPos = affected.getLength() + pos - start.getSecond();
 
         int remainingLength = length;
 

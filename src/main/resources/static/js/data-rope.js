@@ -214,7 +214,7 @@ function ropeDeleteText(pos, length) {
     let affected = start[0];
     let remainingPos = pos - start[1];
     if (remainingPos < 0)
-        remainingPos = Math.abs(pos - start[1]);
+        remainingPos = affected.getLength() + pos - start[1];
 
     let remainingLength = length;
 
