@@ -45,7 +45,7 @@ public class InMemoryAccessPoint implements AccessPoint{
 
     @Override
     public void addMessage(ChatMessage message) {
-
+        chatMap.put((long)chatMap.size(), message);
     }
 
     @Override
@@ -55,6 +55,6 @@ public class InMemoryAccessPoint implements AccessPoint{
 
     @Override
     public Integer getMessageHead() {
-        return changesMap.size();
+        return chatMap.size();
     }
 }
