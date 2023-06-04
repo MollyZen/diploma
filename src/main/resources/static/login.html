@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Авторизация</title>
+</head>
+<body onload="var request = new XMLHttpRequest ();
+request.open ('HEAD', document.location, false);
+request.send (null);
+document.getElementById('csrf').setAttribute('value', request.getResponseHeader('CSRF-Token'));
+console.log(request.getResponseHeader('CSRF-Token'));
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+document.getElementById('f').setAttribute('action', '/login' + urlParams.get('redirect') ? '?redirect=' + urlParams.get('redirect') : '')
+">
+<h1>Login</h1>
+<form id="f" name='f' action="/login" method='post'>
+    <table>
+        <tr>
+            <td>User:</td>
+            <td><input type='text' name='username' value=''></td>
+        </tr>
+        <tr>
+            <td>Password:</td>
+            <td><input type='password' name='password' /></td>
+        </tr>
+        <tr>
+            <td><input name="submit" type="submit" value="submit" /></td>
+        </tr>
+        <input type="hidden" name="_csrf" id="csrf" value=""/>
+    </table>
+</form>
+</body>
+</html>

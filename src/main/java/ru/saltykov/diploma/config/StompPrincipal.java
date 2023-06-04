@@ -2,7 +2,6 @@ package ru.saltykov.diploma.config;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.security.Principal;
 

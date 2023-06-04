@@ -1,29 +1,30 @@
 package ru.saltykov.diploma.controllers;
 
-import io.micrometer.core.instrument.util.IOUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
-import ru.saltykov.diploma.config.StaticResourceConfiguration;
 import ru.saltykov.diploma.rest.FileController;
 import ru.saltykov.diploma.storage.FileDescription;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 @Controller
 @RequestMapping("/")
 public class FilePickerController {
     @Autowired
     FileController fileController;
+
+    @RequestMapping(value = "/login")
+    public String login(HttpServletRequest request, HttpServletResponse response, CsrfToken csrfToken) throws IOException {
+        response.setHeader("CSRF-Token", csrfToken.getToken());
+        return "login";
+    }
 
     @RequestMapping(value = "/")
     public RedirectView method(HttpServletResponse httpServletResponse) {
@@ -36,15 +37,13 @@ public class FilePickerController {
         return new RedirectView("/file/" + desc.id() + "/edit");
     }
 
-    @GetMapping(value = "/file-picker", produces = "text/html;charset=UTF-8")
-    @ResponseBody
+    @RequestMapping(value = "/file-picker")
     public String pickFile() throws IOException {
-        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static" + File.separator + "file-picker.html")), StandardCharsets.UTF_8);
+        return "file-picker";
     }
 
-    @GetMapping(value = "/file/{id}/edit", produces = "text/html;charset=UTF-8")
-    @ResponseBody
+    @RequestMapping(value = "/file/{id}/edit")
     public String editFile() throws IOException {
-        return IOUtils.toString(Files.newInputStream(Path.of(StaticResourceConfiguration.homeDir + File.separator + "static"+ File.separator + "editor.html")), StandardCharsets.UTF_8);
+        return "editor";
     }
 }

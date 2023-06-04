@@ -1,9 +1,11 @@
 package ru.saltykov.diploma.config;
 
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import ru.saltykov.diploma.DiplomaApplication;
 
 import java.io.File;
@@ -24,14 +26,25 @@ public class StaticResourceConfiguration implements WebMvcConfigurer {
         if (homeDir.endsWith(File.separator + "classes"))
             homeDir = homeDir.replaceAll( "classes$", "");
 
-        String staticContentPath = "file:/" + (File.separator.equals("/") ? "/" : "") + homeDir + "static" + File.separator;
+        String tmp = homeDir + "static" + File.separator;
+        tmp = tmp.replace(File.separator, "/");
+        String staticContentPath = "file:/" + (!File.separator.equals("/") ? "//" : "") + tmp;
 
         registry.addResourceHandler("/**")
                 .addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
         registry.addResourceHandler("/static/**")
                 .addResourceLocations(staticContentPath)
-                .setCachePeriod(3600);
+                .setCachePeriod(3600)
+                .resourceChain(true);
 
         registry.addResourceHandler("/webjars/**").addResourceLocations("/webjars/").resourceChain(false);
+    }
+
+    @Bean
+    public InternalResourceViewResolver internalResourceViewResolver() {
+        InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
+        internalResourceViewResolver.setPrefix("/static/");
+        internalResourceViewResolver.setSuffix(".html");
+        return internalResourceViewResolver;
     }
 }
