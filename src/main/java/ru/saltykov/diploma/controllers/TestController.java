@@ -100,14 +100,6 @@ public class TestController {
         return mapper.writeValueAsString(wrapper);
     }
 
-    private String statusUpdateToJson(StatusUpdate update) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        CollaborationMessageWrapper wrapper = new CollaborationMessageWrapper();
-        wrapper.setType("STATUS");
-        wrapper.setMessage(update);
-        return mapper.writeValueAsString(wrapper);
-    }
-
     private String extractMessageId(Message<?> message){
         return ((List<?>)message.getHeaders()
                 .get("nativeHeaders", Map.class)
@@ -134,15 +126,15 @@ public class TestController {
             transformer.addUser((StompPrincipal)event.getUser());
             template.convertAndSendToUser(event.getUser().getName(),
                     "/queue/session/" + transformer.getFileId(),
-                    statusUpdateToJson(StatusUpdate.builder().user(event.getUser().getName()).status("YOU").value(transformer.getUsername((StompPrincipal) event.getUser())).build()));
+                    toJson(StatusUpdate.builder().user(event.getUser().getName()).status("YOU").value(transformer.getUsername((StompPrincipal) event.getUser())).build(), "STATUS"));
             for (StompPrincipal user : transformer.getUsers()) {
                 if (!user.equals(event.getUser())) {
                     template.convertAndSendToUser(user.getName(),
                             "/queue/session/" + transformer.getFileId(),
-                            statusUpdateToJson(StatusUpdate.builder().user(event.getUser().getName()).status("CONNECTED").value(transformer.getUsername((StompPrincipal) event.getUser())).build()));
+                            toJson(StatusUpdate.builder().user(event.getUser().getName()).status("CONNECTED").value(transformer.getUsername((StompPrincipal) event.getUser())).build(), "STATUS"));
                     template.convertAndSendToUser(event.getUser().getName(),
                             "/queue/session/" + transformer.getFileId(),
-                            statusUpdateToJson(StatusUpdate.builder().user(user.getName()).status("CONNECTED").value(transformer.getUsername(user)).build()));
+                            toJson(StatusUpdate.builder().user(user.getName()).status("CONNECTED").value(transformer.getUsername(user)).build(), "STATUS"));
                 }
             }
         }
@@ -171,7 +163,7 @@ public class TestController {
             for (StompPrincipal user : sessionTransformer.getUsers())
                 template.convertAndSendToUser(user.getName(),
                         "/queue/session/" + sessionTransformer.getFileId(),
-                        statusUpdateToJson(StatusUpdate.builder().user(event.getUser().getName()).status("DISCONNECTED").build()));
+                        toJson(StatusUpdate.builder().user(event.getUser().getName()).status("DISCONNECTED").build(), "STATUS"));
 
         System.out.println("disconnected");
     }

@@ -31,8 +31,6 @@ function Changes(user, revision, start) {
 
     this.deletedText = '';
 
-    this.styleCodes = new Map();
-
     this.sent = false;
 
     this.skipText = (length, style) => {
