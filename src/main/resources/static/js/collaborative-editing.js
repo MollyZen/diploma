@@ -560,8 +560,8 @@ function modifyChangesAccordingToChangesString(changes, string){
                         else if (prev[0].slice(0,1) === '-'){
                             let id = 1;
                             for (id = 1; id < prevChanges.length; ++id){
-                                if (prevChanges[i][0].slice(0,1) === '+') break;
-                                else if (!prevChanges[i][0].slice(0,1) === '-'){
+                                if (prevChanges[id][0].slice(0,1) === '+') break;
+                                else if (!prevChanges[id][0].slice(0,1) === '-'){
                                     id = -1;
                                     break;
                                 }
