@@ -227,9 +227,11 @@ function ropeDeleteText(pos, length) {
     if (length === ropeRoot.getLength()){
         let el = leftmostChild(ropeRoot);
         while (el){
-            changed.push({el : el, before : el.text});
-            if (el.text.match(/[\n]/g))
-                specChars--;
+            if (el.text) {
+                changed.push({el: el, before: el.text});
+                if (el.text.match(/[\n]/g))
+                    specChars--;
+            }
 
             el = el.nextTextNode();
         }

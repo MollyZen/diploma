@@ -416,7 +416,7 @@ function processChanges(messageId, obj) {
             setRev(obj.message.revision);
         }
         else{
-            changesQueue.forEach(val => doAccordingToChangesString(val.getUndoChanges()));
+            changesQueue.reverse().forEach(val => doAccordingToChangesString(val.getUndoChanges()));
             changesQueue.forEach(val => modifyChangesAccordingToChangesString(val, obj.message.changes));
             doAccordingToChangesString(obj.message.changes);
             changesQueue.forEach(val => doAccordingToChangesString(val.getChanges()));
@@ -428,7 +428,7 @@ function processChanges(messageId, obj) {
         }
     }
     else {
-        changesQueue.forEach(val => doAccordingToChangesString(val.getUndoChanges()));
+        changesQueue.reverse().forEach(val => doAccordingToChangesString(val.getUndoChanges()));
         changesQueue.forEach(val => modifyChangesAccordingToChangesString(val, obj.message.changes));
         doAccordingToChangesString(obj.message.changes);
         changesQueue.forEach(val => doAccordingToChangesString(val.getChanges()));

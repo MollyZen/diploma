@@ -490,12 +490,12 @@ function deleteText(pos, length){
     while (tmp < changed.length){
         let val = changed[tmp];
         if (tmp === 0)
-            deleted.push(val.before.slice(val.el.text.length), val.el.style);
+            deleted.push([val.before.slice((val.el.text ?? '').length), val.el.style]);
         else if (tmp === changed.length - 1){
-            deleted.push(val.before.slice(0, val.el.text.length), val.el.style);
+            deleted.push([val.before.slice(0, (val.el.text ?? '').length), val.el.style]);
         }
         else {
-            deleted.push(val.before, val.el.style);
+            deleted.push([val.before, val.el.style]);
         }
         ++tmp;
     }

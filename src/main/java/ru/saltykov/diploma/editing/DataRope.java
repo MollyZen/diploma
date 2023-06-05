@@ -219,7 +219,7 @@ public class DataRope {
         if (length == ropeRoot.getLength()){
             TreeNode el = leftmostChild(ropeRoot);
             while (el != null){
-                changed.add(Pair.of(el, el.getText()));
+                if (el.getText() != null) changed.add(Pair.of(el, el.getText()));
                 el = el.nextTextNode();
             }
             ropeRoot.deleteLeft();
