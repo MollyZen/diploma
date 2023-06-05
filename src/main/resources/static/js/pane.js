@@ -41,14 +41,14 @@ function setPane(newPane) {
             if (start === end) {
                 changes = new Changes(curUser, curRev, start - 1);
                 const deletedText = deleteText(start - 1, 1);
-                changes.removeText(1, deletedText)
+                deletedText.forEach(val => changes.removeText(1, val[0], val[1]));
                 lastPositionChangeStart = start - 1;
                 lastPositionChangeLength = -1;
             }
             else {
                 changes = new Changes(curUser, curRev, start);
                 const deletedText = deleteText(start, end - start);
-                changes.removeText(end - start, deletedText)
+                deletedText.forEach(val => changes.removeText(1, val[0], val[1]));
                 lastPositionChangeStart = start;
                 lastPositionChangeLength = (end - start) * -1;
             }
@@ -65,7 +65,7 @@ function setPane(newPane) {
             let deletedText = '';
             if (end > start) {
                 deletedText = deleteText(start, end - start);
-                changes.removeText(end - start, deletedText)
+                deletedText.forEach(val => changes.removeText(1, val[0], val[1]));
             }
 
             if (!ev.shiftKey) {
@@ -92,7 +92,7 @@ function setPane(newPane) {
             let deletedText = '';
             if (end > start) {
                 deletedText = deleteText(start, end - start);
-                changes.removeText(end - start, deletedText)
+                deletedText.forEach(val => changes.removeText(1, val[0], val[1]));
             }
             handleTextInput('\t', null, start);
             changes.addText('\t', null);
@@ -114,7 +114,7 @@ function setPane(newPane) {
         let deletedText = '';
         if (end > start) {
             deletedText = deleteText(start, end - start);
-            changes.removeText(end - start, deletedText)
+            deletedText.forEach(val => changes.removeText(1, val[0], val[1]));
         }
         handleTextInput(ev.data, getEnabledStylesString(), start);
         changes.addText(ev.data, getEnabledStylesString());
@@ -134,7 +134,7 @@ function setPane(newPane) {
         let deletedText = '';
         if (end > start) {
             deletedText = deleteText(start, end - start);
-            changes.removeText(end - start, deletedText)
+            deletedText.forEach(val => changes.removeText(1, val[0], val[1]));
         }
         handleTextInput(ev.clipboardData.getData('text/plain'), null, start);
         changes.addText(ev.clipboardData.getData('text/plain'), null);

@@ -55,7 +55,7 @@ public class LocalStorage implements DataStorage{
     }
 
     @Override
-    public List<FileDescriptor> getFiles(String user) {
+    public List<FileDescription> getFiles(String user) {
         return null;
     }
 

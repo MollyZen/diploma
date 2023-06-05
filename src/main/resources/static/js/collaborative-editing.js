@@ -33,24 +33,53 @@ function Changes(user, revision, start) {
 
     this.sent = false;
 
-    this.skipText = (length, style) => {
-        styleStringToArr(style ?? '').forEach(val => {
-            if (val.code) this.tokens.push('*' + val.code + ':' + val.value)
-        });
-        this.tokens.push('=' + length);
+    this.undoTokens = [];
+    this.undoText = '';
+
+    this.skipText = (length, style, deletedStyling, isUndo) => {
+        if (isUndo){
+            styleStringToArr(style ?? '').forEach(val => {
+                if (val.code) this.undoTokens.push('*' + val.code + ':' + val.value)
+            });
+            this.undoTokens.push('=' + length);
+        }
+        else {
+            styleStringToArr(style ?? '').forEach(val => {
+                if (val.code) this.tokens.push('*' + val.code + ':' + val.value)
+            });
+            this.tokens.push('=' + length);
+            this.skipText(length, deletedStyling, true);
+        }
+
         return this;
     }
-    this.addText = (text, style) => {
-        styleStringToArr(style ?? '').forEach(val => {
-            if (val.code) this.tokens.push('*' + val.code + ':' + val.value)
-        });
-        this.tokens.push('+' + text.length);
-        this.text += text;
+    this.addText = (text, style, isUndo) => {
+        if (isUndo){
+            styleStringToArr(style ?? '').forEach(val => {
+                if (val.code) this.undoTokens.push('*' + val.code + ':' + val.value)
+            });
+            this.undoTokens.push('+' + text.length);
+            this.undoText += text;
+        }
+        else {
+            styleStringToArr(style ?? '').forEach(val => {
+                if (val.code) this.tokens.push('*' + val.code + ':' + val.value)
+            });
+            this.tokens.push('+' + text.length);
+            this.text += text;
+            this.removeText(text.length, null, null, true);
+        }
         return this;
     }
-    this.removeText = (length, deletedText) => {
-        this.tokens.push('-' + length);
-        if (deletedText) this.deletedText += deletedText;
+    this.removeText = (length, deletedText, deletedStyling, isUndo) => {
+        if (isUndo){
+            this.undoTokens.push('-' + length);
+        }
+        else {
+            this.tokens.push('-' + length);
+            this.addText(deletedText, deletedStyling, true);
+        }
+
         return this;
     }
     this.getLengthChange = () => {
@@ -63,6 +92,13 @@ function Changes(user, revision, start) {
         let changes = this.start + (sum<0?"":"+") + sum + '#';
         changes += this.tokens.join('');
         changes += '#' + this.text;
+        return changes;
+    }
+    this.getUndoChanges = () => {
+        let sum = this.getLengthChange() * -1;
+        let changes = this.start + (sum<0?"":"+") + sum + '#';
+        changes += this.undoTokens.join('');
+        changes += '#' + this.undoText;
         return changes;
     }
     this.toMessageJSON = () => {
@@ -372,6 +408,7 @@ function processChanges(messageId, obj) {
         pending.set(obj.message.revision, {messageId, obj});
         return;
     }
+    //TODO: сделать учет сдвигов для своих изменений при получении изменений со стороны
     const firstInQueue = changesQueue[0];
     if (firstInQueue && messageId === firstInQueue.messageId){
         if (firstInQueue.changes.getChanges() === obj.message.changes) {
@@ -379,53 +416,245 @@ function processChanges(messageId, obj) {
             setRev(obj.message.revision);
         }
         else{
-            console.log('UNDO IS SUPPOSED TO HAPPEN');
+            changesQueue.forEach(val => doAccordingToChangesString(val.getUndoChanges()));
+            changesQueue.forEach(val => modifyChangesAccordingToChangesString(val, obj.message.changes));
+            doAccordingToChangesString(obj.message.changes);
+            changesQueue.forEach(val => doAccordingToChangesString(val.getChanges()));
+            setRev(obj.message.revision);
+            console.log('UNDO HAS HAPPENED');
         }
         if (changesQueue[0]) {
             submitChanges(changesQueue[0].changes);
         }
     }
     else {
-        let split = obj.message.changes.split(/#/);
-        let start = parseInt(split[0].split(/[+-]/)[0]);
-        let lengthChange = parseInt(split[0].slice(start.toString().length));
-        let movedPos = 0;
-        let remainingText = split[2];
-
-        let formatting = [];
-        split[1].match(/([+\-=]|\*[0-9]+:)[0-9]+/g).forEach(val => {
-            let numValue = parseInt(val.slice(1));
-            if (val.match(/\*[0-9]+/))
-                formatting.push(val.slice(1));
-            else if (val.match(/=[0-9]+/)) {
-                if (formatting.length > 0) {
-                    changeFormatting();
-                    formatting = [];
-                }
-                movedPos += numValue;
-            }
-            else if (val.match(/-[0-9]+/)) {
-                deleteText(start + movedPos, numValue);
-            }
-            else if (val.match(/\+[0-9]+/)) {
-                let [first, second] = splitString(remainingText, numValue)
-                handleTextInput(first, formatting.join(' '), start + movedPos);
-                remainingText = second;
-                movedPos += numValue;
-                formatting = [];
-            }
-        })
+        changesQueue.forEach(val => doAccordingToChangesString(val.getUndoChanges()));
+        changesQueue.forEach(val => modifyChangesAccordingToChangesString(val, obj.message.changes));
+        doAccordingToChangesString(obj.message.changes);
+        changesQueue.forEach(val => doAccordingToChangesString(val.getChanges()));
         setRev(obj.message.revision);
-
-        lastPositionChangeStart = start;
-        lastPositionChangeLength = lengthChange;
-        pane.dispatchEvent(new Event('input'));
     }
     const nextObj = pending.get(obj.message.revision + 1);
     if (nextObj){
         pending.delete(nextObj.obj.message.revision);
         processChanges(null, nextObj);
     }
+}
+
+function modifyChangesAccordingToChangesString(changes, string){
+    let changesStart = changes.start;
+    let changesAffectedLength = 0;
+    changes.tokens.forEach(val => {
+        if (val.charAt(0) === '=' || val.charAt(0) === '-')
+            changesAffectedLength += parseInt(val.slice(1));
+    })
+
+    //to changes
+    let oldAffectedLength = 0;
+    let split = string.split(/#/);
+    let prevStart = parseInt(split[0].split(/[+-]/)[0]);
+    let remainingText = split[2];
+    let oldChanges = new Changes(null, null, prevStart);
+    let formatting = [];
+    split[1].match(/([+\-=]|\*[0-9]+:)[0-9]+/g).forEach(val => {
+        let numValue = parseInt(val.slice(1));
+        if (val.match(/\*[0-9]+/))
+            formatting.push(val.slice(1));
+        else if (val.match(/=[0-9]+/)) {
+            oldChanges.skipText(parseInt(val.slice(1)), formatting.join(' '))
+            oldAffectedLength += parseInt(val.slice(1));
+        }
+        else if (val.match(/-[0-9]+/)) {
+            oldChanges.removeText(parseInt(val.slice(1)));
+            oldAffectedLength += parseInt(val.slice(1));
+        }
+        else if (val.match(/\+[0-9]+/)) {
+            let [first, second] = splitString(remainingText, numValue)
+            oldChanges.addText(first, formatting.join(' '));
+        }
+    })
+
+    //new changes fully before old ones
+    if (changesStart < prevStart && changesAffectedLength < oldAffectedLength){
+        return changes;
+    }
+    //new changes fully after old ones
+    else if (changesStart > prevStart) {
+        changes.start += oldChanges.getLengthChange();
+        return changes;
+    }
+    else {
+        let pos = changes.start;
+        let oldPos = oldChanges.start;
+
+        let tmp = oldChanges.tokens.slice();
+        let prevChanges = [];
+        while (tmp.length > 0){
+            formatting = accumulateStyling(tmp);
+            let val = tmp.shift();
+            prevChanges.push([val, formatting]);
+        }
+        tmp = changes.tokens.slice();
+        let newChanges = [];
+        while (tmp.length > 0){
+            formatting = accumulateStyling(tmp);
+            let val = tmp.shift();
+            newChanges.push([val, formatting]);
+        }
+
+        let startAdjustment = 0;
+        let resChanges = [];
+        while (newChanges.length > 0){
+            if (prevChanges.length === 0){
+                resChanges.push(...newChanges);
+                newChanges = [];
+                break;
+            }
+            let prev = prevChanges[0];
+            let cur = newChanges[0];
+            //if cur changes start before old ones
+            if (pos < oldPos){
+                newChanges.shift();
+                if (cur[0].slice(0, 1) === '+'){
+                    resChanges.push(cur);
+                }
+                else if(cur[0].slice(0, 1) === '-') {
+                    resChanges.push(cur);
+                    pos += parseInt(cur[0].slice(1));
+                }
+                else {
+                    resChanges.push(cur);
+                    pos += parseInt(cur[0].slice(1));
+                }
+            }
+            // old parts before current changes
+            else if(oldPos < pos){
+                prevChanges.shift();
+                if (prev[0].slice(0,1) === '-'){
+                    startAdjustment += parseInt(prev[0]);
+                    oldPos += parseInt(prev[0].slice(1))
+                }
+                else if (prev[0].slice(0,1) === '+') {
+                    if (resChanges.length === 0){
+                        startAdjustment += parseInt(prev[0]);
+                    }
+                    else {
+                        resChanges.push(['=' + prev.slice(1), prev[1]]);
+                        pos += parseInt(prev[0].slice(1))
+                    }
+                }
+                else {
+                    oldPos += parseInt(prev[0].slice(1))
+                }
+            }
+            //match
+            else {
+                switch (cur[0].slice(0,1)){
+                    case '+' : {
+                        if (prev[0].slice(0,1) === '+'){
+                            resChanges.push(['='+prev[0].slice(1), []]);
+                            resChanges.push(cur);
+                            prevChanges.shift();
+                            newChanges.shift();
+                        }
+                        else if (prev[0].slice(0,1) === '-'){
+                            prevChanges.shift();
+                            oldPos += parseInt(prev[0].slice(1));
+                        }
+                        else if (prev[0].slice(0,1) === '='){
+                            resChanges.push(cur);
+                            pos += parseInt(prev[0].slice(1));
+                            newChanges.shift();
+                        }
+                        break;
+                    }
+                    case '-' : {
+                        if (prev[0].slice(0,1) === '+'){
+                            resChanges.push(['='+prev[0].slice(1), []]);
+                            prevChanges.shift();
+                        }
+                        else if (prev[0].slice(0,1) === '-'){
+                            prevChanges.shift();
+                            newChanges.shift();
+                        }
+                        else if (prev[0].slice(0,1) === '='){
+                            resChanges.push(cur);
+                            prevChanges.shift();
+                            newChanges.shift();
+                        }
+                        break;
+                    }
+                    case '=' : {
+                        if (prev[0].slice(0,1) === '+'){
+                            resChanges.push(['='+prev[0].slice(1), []]);
+                            prevChanges.shift();
+                        }
+                        else if (prev[0].slice(0,1) === '-'){
+                            prevChanges.shift();
+                            newChanges.shift();
+                        }
+                        else if (prev[0].slice(0,1) === '='){
+                            const tmpMap = new Map();
+                            prev[1].forEach(val => {
+                                const tmpVal = val.replace(/\*/g, '').split(':');
+                                tmpMap.set(tmpVal[0], tmpVal[1])
+                            })
+                            cur[1].forEach(val => {
+                                const tmpVal = val.replace(/\*/g, '').split(':');
+                                tmpMap.set(tmpVal[0], tmpVal[1])
+                            })
+                            resChanges.push([cur[0], [...tmpMap].sort().map(([key, value]) => ('*') + key + ':' + value)]);
+                            prevChanges.shift();
+                            newChanges.shift();
+                        }
+                        break;
+                    }
+                }
+            }
+            changes = changes.start + startAdjustment;
+            changes.tokens = [];
+            newChanges.forEach(val => {
+                changes.tokens.push(...val[1]);
+                changes.tokens.push(val[0]);
+            })
+        }
+    }
+}
+
+function doAccordingToChangesString(changes) {
+    let split = changes.split(/#/);
+    let start = parseInt(split[0].split(/[+-]/)[0]);
+    let lengthChange = parseInt(split[0].slice(start.toString().length));
+    let movedPos = 0;
+    let remainingText = split[2];
+
+    let formatting = [];
+    split[1].match(/([+\-=]|\*[0-9]+:)[0-9]+/g).forEach(val => {
+        let numValue = parseInt(val.slice(1));
+        if (val.match(/\*[0-9]+/))
+            formatting.push(val.slice(1));
+        else if (val.match(/=[0-9]+/)) {
+            if (formatting.length > 0) {
+                changeFormatting();
+                formatting = [];
+            }
+            movedPos += numValue;
+        }
+        else if (val.match(/-[0-9]+/)) {
+            deleteText(start + movedPos, numValue);
+        }
+        else if (val.match(/\+[0-9]+/)) {
+            let [first, second] = splitString(remainingText, numValue)
+            handleTextInput(first, formatting.join(' '), start + movedPos);
+            remainingText = second;
+            movedPos += numValue;
+            formatting = [];
+        }
+    })
+
+    lastPositionChangeStart = start;
+    lastPositionChangeLength = lengthChange;
+    pane.dispatchEvent(new Event('input'));
 }
 
 //message submission

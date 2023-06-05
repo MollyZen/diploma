@@ -485,20 +485,24 @@ function insertTab(pos){
 function deleteText(pos, length){
     let changed = ropeDeleteText(pos, length); // {el, before}
 
-    const first= 0;
-    const last = changed.length - 1;
-    let srcString = '';
+    let deleted = [];
+    let tmp = 0;
+    while (tmp < changed.length){
+        let val = changed[tmp];
+        if (tmp === 0)
+            deleted.push(val.before.slice(val.el.text.length), val.el.style);
+        else if (tmp === changed.length - 1){
+            deleted.push(val.before.slice(0, val.el.text.length), val.el.style);
+        }
+        else {
+            deleted.push(val.before, val.el.style);
+        }
+        ++tmp;
+    }
 
     let i = 0;
     while (i < changed.length){
         let val = changed[i];
-
-        if (i === first)
-            srcString += val.el.text ? val.before.slice(val.el.text.length) : val.before;
-        else if (i === last)
-            srcString += val.el.text ? val.before.slice(0, val.el.text.length) : val.before;
-        else
-            srcString += val.el.before;
 
         let view = modelViewRelMap.get(val.el);
         let viewEls = modelViewRelMap.get(view);
@@ -542,14 +546,13 @@ function deleteText(pos, length){
         ++i;
     }
 
-    //document.getElementById("sym_count").textContent = getLetterCount();
-    return srcString;
+
+    return deleted;
 }
 
 function changeFormatting(pos, length, style){
 
 }
-
 
 function applyFormattingToElement(el, styleCode, value){
     switch (parseInt(styleCode)){

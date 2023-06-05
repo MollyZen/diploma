@@ -15,10 +15,12 @@ class TransformerTest {
         DocumentChange ch1 = new DocumentChange("3+3#+3#BOB", 1L);
         DocumentChange ch2 = new DocumentChange("0-3#-3#", 1L);
         transformer.applyChanges(src);
+        transformer.insertText();
         transformer.applyChanges(ch1);
+        transformer.insertText();
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("BOBBAR", accessPoint.getLastText().getSecond());
+        assertEquals("0+6#+6#BOBBAR", accessPoint.getLastText().getSecond());
     }
 
     @Test
@@ -32,7 +34,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("FAR", accessPoint.getLastText().getSecond());
+        assertEquals("0+3#+3#FAR", accessPoint.getLastText().getSecond());
     }
 
     @Test
@@ -46,7 +48,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("FAAR", accessPoint.getLastText().getSecond());
+        assertEquals("0+4#+4#FAAR", accessPoint.getLastText().getSecond());
     }
 
     @Test
@@ -62,7 +64,7 @@ class TransformerTest {
         transformer.applyChanges(ch2);
         transformer.applyChanges(ch3);
         transformer.insertText();
-        assertEquals("FAABR", accessPoint.getLastText().getSecond());
+        assertEquals("0+5#+5#FAABR", accessPoint.getLastText().getSecond());
     }
 
     @Test
@@ -76,7 +78,90 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("BCAA", accessPoint.getLastText().getSecond());
+        assertEquals("0+4#+4#BCAA", accessPoint.getLastText().getSecond());
     }
 
+    @Test
+    public void insanity(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+4#+4#AAAA", 0L);
+        DocumentChange ch1 = new DocumentChange("0-2#-2#", 1L);
+        DocumentChange ch2 = new DocumentChange("1-3#-3#", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch1);
+        transformer.applyChanges(ch2);
+        transformer.insertText();
+        assertEquals("0+0##", accessPoint.getLastText().getSecond());
+    }
+
+    @Test
+    public void charRemovedCharAddedAtTheSamePosition(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+4#+4#ABCD", 0L);
+        DocumentChange ch1 = new DocumentChange("1-1#-1#", 1L);
+        DocumentChange ch2 = new DocumentChange("1+2#+2#BB", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch1);
+        transformer.applyChanges(ch2);
+        transformer.insertText();
+        assertEquals("0+5#+5#ABBCD", accessPoint.getLastText().getSecond());
+    }
+
+    @Test
+    public void prevTestReversed(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+4#+4#ABCD", 0L);
+        DocumentChange ch2 = new DocumentChange("1+2#+2#ZZ", 1L);
+        DocumentChange ch1 = new DocumentChange("1-1#-1#", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch2);
+        transformer.applyChanges(ch1);
+        transformer.insertText();
+        assertEquals("0+5#+5#AZZCD", accessPoint.getLastText().getSecond());
+    }
+
+    @Test
+    public void prevTestReversedAndHardened(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+4#+4#ABCD", 0L);
+        DocumentChange ch2 = new DocumentChange("1+2#+2#ZZ", 1L);
+        DocumentChange ch1 = new DocumentChange("1-1#-1+2#HH", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch2);
+        transformer.applyChanges(ch1);
+        transformer.insertText();
+        assertEquals("0+7#+7#AZZHHCD", accessPoint.getLastText().getSecond());
+    }
+
+    @Test
+    public void prevTestReversedAndHardenedAndHardened(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+4#+4#ABCD", 0L);
+        DocumentChange ch2 = new DocumentChange("0+1#-1+2#ZZ", 1L);
+        DocumentChange ch1 = new DocumentChange("1-1#-1+2#HH", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch2);
+        transformer.applyChanges(ch1);
+        transformer.insertText();
+        assertEquals("0+6#+6#ZZHHCD", accessPoint.getLastText().getSecond());
+    }
+
+    @Test
+    public void withKeeping(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+4#+4#ABCD", 0L);
+        DocumentChange ch1 = new DocumentChange("1+0#=3#", 1L);
+        DocumentChange ch2 = new DocumentChange("1-2#-2#", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch1);
+        transformer.applyChanges(ch2);
+        transformer.insertText();
+        assertEquals("0+2#+2#AD", accessPoint.getLastText().getSecond());
+    }
 }
