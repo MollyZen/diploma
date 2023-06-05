@@ -164,4 +164,18 @@ class TransformerTest {
         transformer.insertText();
         assertEquals("0+2#+2#AD", accessPoint.getLastText().getSecond());
     }
+
+    @Test
+    public void lookup(){
+        InMemoryAccessPoint accessPoint = new InMemoryAccessPoint();
+        Transformer transformer = new Transformer(accessPoint, null, "1");
+        DocumentChange src = new DocumentChange("0+4#+4#ABCD", 0L);
+        DocumentChange ch1 = new DocumentChange("2-1#-1-1+1#E", 1L);
+        DocumentChange ch2 = new DocumentChange("2+1#+2=1#FD", 1L);
+        transformer.applyChanges(src);
+        transformer.applyChanges(ch1);
+        transformer.applyChanges(ch2);
+        transformer.insertText();
+        assertEquals("0+5#+5#ABEFD", accessPoint.getLastText().getSecond());
+    }
 }

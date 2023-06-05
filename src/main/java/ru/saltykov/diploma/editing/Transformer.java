@@ -153,18 +153,18 @@ public class Transformer {
 
         ParsedChanges prevParsed = parseChanges(prevChanges);
 
-        Integer affectedStart = changes.getStart();
-        long affectedEnd = changes.getStart() +
+        int affectedStart = changes.getStart();
+        int affectedEnd = changes.getStart() +
                 changes.getTokens().stream()
                         .filter(e -> !e.getToken().equals(AllowedTokens.APPLY_FORMATTING) && !e.getToken().equals(AllowedTokens.CHAR_ADDED))
-                        .mapToLong(FormattedToken::getValue)
+                        .mapToInt(FormattedToken::getValue)
                         .sum();
 
-        Integer prevAffectedStart = prevParsed.getStart();
-        long prevAffectedEnd = prevParsed.getStart() +
+        int prevAffectedStart = prevParsed.getStart();
+        int prevAffectedEnd = prevParsed.getStart() +
                 prevParsed.getTokens().stream()
                         .filter(e -> !e.getToken().equals(AllowedTokens.APPLY_FORMATTING) && !e.getToken().equals(AllowedTokens.CHAR_ADDED))
-                        .mapToLong(FormattedToken::getValue)
+                        .mapToInt(FormattedToken::getValue)
                         .sum();
 
         //new changes fully before old ones
@@ -186,10 +186,10 @@ public class Transformer {
             List<Pair<FormattedToken, List<FormattedToken>>> newChanges = changes.getGroupedTokens();
             List<Pair<FormattedToken, List<FormattedToken>>> oldChanges = prevParsed.getGroupedTokens();
 
-            Integer pos = changes.getStart();
-            Integer oldPos = prevParsed.getStart();
+            int pos = changes.getStart();
+            int oldPos = prevParsed.getStart();
 
-            Integer startAdjustment = 0;
+            int startAdjustment = 0;
 
             List<Pair<FormattedToken, List<FormattedToken>>> tmp = new ArrayList<>();
             newChanges.forEach(val -> {
@@ -240,7 +240,7 @@ public class Transformer {
                 else if(oldPos < pos){
                     oldChanges.remove(0);
                     if (prev.getFirst().getToken().equals(AllowedTokens.CHAR_REMOVED)) {
-                        startAdjustment += Integer.parseInt(prev.getFirst().getToken() + prev.getFirst().getValue());
+                        if (resChanges.size() == 0) startAdjustment += Integer.parseInt(prev.getFirst().getToken() + prev.getFirst().getValue());
                         oldPos += prev.getFirst().getValue();
                     }
                     else if (prev.getFirst().getToken().equals(AllowedTokens.CHAR_ADDED)){
@@ -264,12 +264,28 @@ public class Transformer {
                                 resChanges.add(cur);
                                 oldChanges.remove(0);
                                 newChanges.remove(0);
-                            } else if (prev.getFirst().getToken().equals(AllowedTokens.CHAR_REMOVED)) {
-                                oldChanges.remove(0);
-                                oldPos += prev.getFirst().getValue();
-                            } else {
+                            }
+                            else if (prev.getFirst().getToken().equals(AllowedTokens.CHAR_REMOVED)) {
+                                int id;
+                                for (id = 1; id < oldChanges.size(); ++id) {
+                                    if (oldChanges.get(id).getFirst().getToken().equals(AllowedTokens.CHAR_ADDED))
+                                        break;
+                                    else if (!oldChanges.get(id).getFirst().getToken().equals(AllowedTokens.CHAR_REMOVED)){
+                                        id = -1;
+                                        break;
+                                    }
+                                }
+                                if (id > 0 && id != oldChanges.size()){
+                                    oldChanges.set(0, oldChanges.get(id));
+                                    oldChanges.set(id, prev);
+                                }
+                                else {
+                                    resChanges.add(cur);
+                                    newChanges.remove(0);
+                                }
+                            }
+                            else {
                                 resChanges.add(cur);
-                                pos += cur.getFirst().getValue();
                                 newChanges.remove(0);
                             }
                         }

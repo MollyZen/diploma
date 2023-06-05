@@ -558,12 +558,25 @@ function modifyChangesAccordingToChangesString(changes, string){
                             newChanges.shift();
                         }
                         else if (prev[0].slice(0,1) === '-'){
-                            prevChanges.shift();
-                            oldPos += parseInt(prev[0].slice(1));
+                            let id = 1;
+                            for (id = 1; id < prevChanges.length; ++id){
+                                if (prevChanges[i][0].slice(0,1) === '+') break;
+                                else if (!prevChanges[i][0].slice(0,1) === '-'){
+                                    id = -1;
+                                    break;
+                                }
+                            }
+                            if (id > 0 && id !== prevChanges.length){
+                                prevChanges.splice(0, 1, prevChanges[id]);
+                                prevChanges.splice(id, 1, prev);
+                            }
+                            else {
+                                resChanges.push(cur);
+                                newChanges.shift();
+                            }
                         }
                         else if (prev[0].slice(0,1) === '='){
                             resChanges.push(cur);
-                            pos += parseInt(prev[0].slice(1));
                             newChanges.shift();
                         }
                         break;

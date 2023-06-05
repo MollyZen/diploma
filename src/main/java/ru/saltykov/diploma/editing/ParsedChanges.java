@@ -42,7 +42,7 @@ public class ParsedChanges {
         List<Pair<FormattedToken, List<FormattedToken>>>res = new ArrayList<>();
         List<FormattedToken> formatting = new ArrayList<>();
         for (FormattedToken token : tokens) {
-            if (token.getToken().matches("[=\\-+]")){
+            if (!token.getToken().equals(AllowedTokens.APPLY_FORMATTING)){
                 res.add(Pair.of(token, formatting));
                 formatting = new ArrayList<>();
             }
