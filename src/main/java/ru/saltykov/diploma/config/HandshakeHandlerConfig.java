@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
-public class HandshakeHanlderConfig extends DefaultHandshakeHandler {
+public class HandshakeHandlerConfig extends DefaultHandshakeHandler {
     // Custom class for storing principal
     @Override
     protected Principal determineUser(ServerHttpRequest request,

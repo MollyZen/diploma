@@ -11,7 +11,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired
-    private HandshakeHanlderConfig customHandshakeHandler;
+    private HandshakeHandlerConfig customHandshakeHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {

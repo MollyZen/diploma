@@ -2,40 +2,43 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Авторизация</title>
+    <title>Регистрация</title>
     <link rel="stylesheet" href="/static/css/theme.css"/>
     <link rel="stylesheet" href="/static/css/login-register.css"/>
     <script src="/static/js/login-register.js"></script>
 </head>
-<body onload="loginSetup()">
+<body onload="registerSetup()">
 <table class="form-table">
     <tr id="title">
         <td>
             <img src="/static/img/icon.svg" style="object-fit:contain; margin-right: 10px;" width="40" height="40" />
         </td>
         <td>
-            Авторизация
+            Регистрация
         </td>
     </tr>
     <tr>
         <td>
-            <form id="f" name='f' action="/login" method='post'>
+            <form id="f" name='f' action="/registration" method='post'>
                 <label>
-                    <input type='text' name='username' placeholder='Имя пользователя' required/>
+                    <input type='text' name='username' value='' placeholder='Имя пользователя' required/>
+                </label>
+                <label>
+                    <input type='text' name='name' value='' placeholder="Отображаемое имя" required/>
                 </label>
                 <label>
                     <input type='password' name='password' placeholder='Пароль' required/>
                 </label>
-                <input class="editor-button" name="submit" type="submit" value="Войти" />
+                <input class="editor-button" name="submit" type="submit" value="Зарегистрироваться" />
                 <input type="hidden" name="_csrf" id="csrf" value=""/>
             </form>
         </td>
     </tr>
     <tr id="bottom">
         <td>
-            Нет аккаунта ?
-            <a href="/registration" id="reg" >
-                Регистрация
+            Уже есть аккаунт ?
+            <a href="/login" id="login" >
+                Вход
             </a>
         </td>
     </tr>

@@ -1,24 +1,41 @@
 package ru.saltykov.diploma.config;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import ru.saltykov.diploma.domain.CollabUser;
+import ru.saltykov.diploma.services.UserService;
 
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 @Configuration
 public class SecurityConfig{
+    @Autowired
+    UserService userService;
+    @Autowired
+    RequestAuthenticationFilter myFilter;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().requireCsrfProtectionMatcher(new RequestMatcher() {
@@ -48,6 +65,7 @@ public class SecurityConfig{
                         .requestMatchers("/h2-console").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/login").permitAll()
+                        .requestMatchers("/registration").permitAll()
                         /*.requestMatchers("/gs-guide-websocket/**").authenticated()
                         .requestMatchers("/user/**").authenticated()
                         .requestMatchers("/session/**").access()*/
@@ -62,27 +80,54 @@ public class SecurityConfig{
                 .successHandler(new RedirectAuthenticationSuccessHandler())
                 .and()
                 .logout()
-                .logoutUrl("/logout");
-
+                .logoutUrl("/logout")
+                .and()
+                .addFilterAfter(myFilter, SecurityContextPersistenceFilter.class);
         return http.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user1 =
-                User.withDefaultPasswordEncoder()
-                        .username("user")
-                        .password("password")
-                        .roles("USER")
-                        .build();
-        UserDetails user2 =
-                User.withDefaultPasswordEncoder()
-                        .username("user2")
-                        .password("password")
-                        .roles("USER")
-                        .build();
+    public Filter myFilter() {
+        return new RequestAuthenticationFilter();
+    }
 
-        return new InMemoryUserDetailsManager(user1, user2);
+    @Component
+    public static class RequestAuthenticationFilter extends OncePerRequestFilter {
+        @Autowired
+        UserService userService;
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+            HttpSession session = request.getSession(false);
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (session != null && auth != null && !auth.getPrincipal().equals("anonymousUser")){
+                if (userService.getUserByUsername(((CollabUser)auth.getPrincipal()).getUsername()) == null){
+                    session.invalidate();
+                }
+            }
+            filterChain.doFilter(request, response);
+        }
+
+        @Override
+        protected boolean shouldNotFilter(HttpServletRequest request) {
+            String path = request.getServletPath();
+            return path.startsWith("/static/") || path.startsWith("/registration") || path.startsWith("/h2-console");
+        }
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return userService;
+    }
+
+    @Bean
+    @Autowired
+    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+        auth.setUserDetailsService(userService);
+        auth.setPasswordEncoder(passwordEncoder);
+        return auth;
     }
 
     public static class RedirectAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {

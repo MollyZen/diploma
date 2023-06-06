@@ -2,15 +2,24 @@ package ru.saltykov.diploma.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.ibatis.type.LocalDateTimeTypeHandler;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.annotation.MapperScan;
+import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.saltykov.diploma.util.UUIDTypeHandler;
 
 import javax.sql.DataSource;
 
 @Configuration
+@MapperScan("ru.saltykov.diploma.repositories")
 public class DataBaseConfig {
     //@Profile("production")
     //@Primary
@@ -30,7 +39,11 @@ public class DataBaseConfig {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName(org.h2.Driver.class.getCanonicalName()/*org.postgresql.Driver.class.getCanonicalName()*/);
         //config.setJdbcUrl("jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbName);
+        //String tmp = "jdbc:h2:file:" + StaticResourceConfiguration.homeDir + "h2db";
+        //config.setJdbcUrl(tmp);
+        //System.out.println("H2 path: " + tmp);
         config.setJdbcUrl("jdbc:h2:mem:testdb");
+
         //config.setUsername(userName);
         //config.setPassword(password);
         config.setUsername("admin");
@@ -59,5 +72,36 @@ public class DataBaseConfig {
         DataSourceTransactionManager tm = new DataSourceTransactionManager(dataSource);
         tm.setDefaultTimeout(30);
         return tm;
+    }
+
+    @Bean
+    public SpringManagedTransactionFactory managedTransactionFactory() {
+        return new SpringManagedTransactionFactory();
+    }
+
+    @Bean
+    @Primary
+    public SqlSessionFactoryBean sqlSessionFactoryBean(
+            DataSource dataSource,
+            SpringManagedTransactionFactory managedTransactionFactory,
+            ApplicationContext context
+    ) {
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setConfiguration(new org.apache.ibatis.session.Configuration() {{
+            this.setLazyLoadingEnabled(true);
+            this.setAggressiveLazyLoading(false);
+            this.setMultipleResultSetsEnabled(true);
+            this.getLazyLoadTriggerMethods().clear();
+        }});
+        bean.setDataSource(dataSource);
+        bean.setTransactionFactory(managedTransactionFactory);
+        bean.setTypeHandlers(new UUIDTypeHandler(),
+                new LocalDateTimeTypeHandler());
+        return bean;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
     }
 }

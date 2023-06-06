@@ -18,14 +18,12 @@ public class StaticResourceConfiguration implements WebMvcConfigurer {
             "classpath:/static/", "classpath:/public/" };
 
     public static ApplicationHome home = new ApplicationHome(DiplomaApplication.class);
-    public static String homeDir = home.getDir().toString();
+    public static String homeDir = home.getDir().toString().endsWith(File.separator + "classes") ?
+            home.getDir().toString().replaceAll( "classes$", "") :
+            home.getDir().toString();
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Case when not packaged in jar
-        if (homeDir.endsWith(File.separator + "classes"))
-            homeDir = homeDir.replaceAll( "classes$", "");
-
         String tmp = homeDir + "static" + File.separator;
         tmp = tmp.replace(File.separator, "/");
         String staticContentPath = "file:/" + (!File.separator.equals("/") ? "//" : "") + tmp;

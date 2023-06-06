@@ -1,9 +1,7 @@
 package ru.saltykov.diploma.controllers;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,12 +17,6 @@ import java.io.IOException;
 public class FilePickerController {
     @Autowired
     FileController fileController;
-
-    @RequestMapping(value = "/login")
-    public String login(HttpServletRequest request, HttpServletResponse response, CsrfToken csrfToken) throws IOException {
-        response.setHeader("CSRF-Token", csrfToken.getToken());
-        return "login";
-    }
 
     @RequestMapping(value = "/")
     public RedirectView method(HttpServletResponse httpServletResponse) {

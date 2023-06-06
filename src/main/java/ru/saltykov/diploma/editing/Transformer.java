@@ -3,10 +3,11 @@ package ru.saltykov.diploma.editing;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.data.util.Pair;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.config.StompPrincipal;
+import ru.saltykov.diploma.domain.CollabUser;
 import ru.saltykov.diploma.messages.ChatMessage;
 import ru.saltykov.diploma.messages.DocumentChange;
 import ru.saltykov.diploma.storage.DataStorage;
@@ -421,7 +422,7 @@ public class Transformer {
         if (anonymousUserNames.get(user.getName()) != null)
             return anonymousUserNames.get(user.getName());
         else
-            return user.getCorePrincipal().getName();
+            return ((CollabUser)((UsernamePasswordAuthenticationToken)user.getCorePrincipal()).getPrincipal()).getDisplayname();
     }
 
     public ChatMessage addMessage(ChatMessage message) {

@@ -3,7 +3,6 @@ package ru.saltykov.diploma.storage;
 import ru.saltykov.diploma.config.StaticResourceConfiguration;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import ru.saltykov.diploma.access.InMemoryAccessPoint;
 import ru.saltykov.diploma.messages.DocumentChange;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TransformerTest {
     @Test
