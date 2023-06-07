@@ -3,59 +3,78 @@ package ru.saltykov.diploma.access;
 import org.springframework.data.util.Pair;
 import ru.saltykov.diploma.messages.ChatMessage;
 import ru.saltykov.diploma.messages.DocumentChange;
+import ru.saltykov.diploma.messages.StatusUpdate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class InMemoryAccessPoint implements AccessPoint{
-    final private HashMap<Long, DocumentChange> changesMap = new HashMap<>();
-    final private TreeMap<Long, String> textMap = new TreeMap<>();
-    final private TreeMap<Long, ChatMessage> chatMap = new TreeMap<>();
+    final private HashMap<UUID, HashMap<Integer, DocumentChange>> changesMap = new HashMap<>();
+    final private HashMap<UUID, TreeMap<Integer, String>> textMap = new HashMap<>();
+    final private HashMap<UUID, TreeMap<Long, ChatMessage>> chatMap = new HashMap<>();
 
     @Override
-    public DocumentChange insertChanges(DocumentChange changes) {
-        changesMap.put(changes.getRevision(), changes);
+    public DocumentChange insertChanges(UUID fileid, DocumentChange changes) {
+        changesMap.computeIfAbsent(fileid, e -> new HashMap<>());
+        changesMap.get(fileid).put(changes.getRevision(), changes);
         return changes;
     }
 
     @Override
-    public List<DocumentChange> getChangesFrom(Long revId) {
-        return changesMap.entrySet().stream().filter(e -> e.getKey() > revId).map(Map.Entry::getValue).collect(Collectors.toList());
+    public List<DocumentChange> getChangesFrom(UUID fileid, Integer revId) {
+        changesMap.computeIfAbsent(fileid, e -> new HashMap<>());
+        return changesMap.get(fileid).entrySet().stream().filter(e -> e.getKey() > revId).map(Map.Entry::getValue).collect(Collectors.toList());
     }
 
 
     @Override
-    public void addText(Long revId, String text) {
-        textMap.put(revId, text);
+    public void addText(UUID fileid, Integer revId, String text) {
+        textMap.computeIfAbsent(fileid, e -> new TreeMap<>());
+        textMap.get(fileid).put(revId, text);
     }
 
     @Override
-    public Pair<Long, String> getLastText() {
-        Map.Entry<Long, String> entry = textMap.lastEntry();
+    public Pair<Integer, String> getLastText(UUID fileid) {
+        textMap.computeIfAbsent(fileid, e -> new TreeMap<>());
+        Map.Entry<Integer, String> entry = textMap.get(fileid).lastEntry();
         return entry != null ? Pair.of(entry.getKey(), entry.getValue()) : null;
     }
 
     @Override
-    public String getText(Long revId) {
-        return textMap.get(revId);
+    public String getText(UUID fileid, Integer revId) {
+        textMap.computeIfAbsent(fileid, e -> new TreeMap<>());
+        return textMap.get(fileid).get(revId);
     }
 
     @Override
-    public ChatMessage addMessage(ChatMessage message) {
-        chatMap.put((long)chatMap.size(), message);
+    public ChatMessage addMessage(UUID fileid, ChatMessage message) {
+        chatMap.computeIfAbsent(fileid, e -> new TreeMap<>());
+        chatMap.get(fileid).put((long)chatMap.get(fileid).size(), message);
         return message;
     }
 
     @Override
-    public List<ChatMessage> getMessagesFrom(Long messageId) {
-        return null;
+    public List<ChatMessage> getMessagesFrom(UUID fileid, Integer messageId) {
+        chatMap.computeIfAbsent(fileid, e -> new TreeMap<>());
+        return chatMap.get(fileid)
+                .entrySet().stream()
+                .filter(e -> e.getKey() >= messageId)
+                .map(Map.Entry::getValue).collect(Collectors.toList());
     }
 
     @Override
-    public Integer getMessageHead() {
-        return chatMap.size();
+    public Integer getMessageHead(UUID fileid) {
+        chatMap.computeIfAbsent(fileid, e -> new TreeMap<>());
+        return chatMap.get(fileid).size();
+    }
+
+    @Override
+    public void setStatus(UUID file, UUID user, String status, String value) {
+
+    }
+
+    @Override
+    public List<StatusUpdate> getStatuses(UUID file) {
+        return null;
     }
 }

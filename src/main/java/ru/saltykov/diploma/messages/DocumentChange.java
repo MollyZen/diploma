@@ -17,5 +17,5 @@ import lombok.extern.jackson.Jacksonized;
 @Accessors(chain = true)
 public class DocumentChange extends CollaborationMessage{
     String changes;
-    Long revision;
+    Integer revision;
 }

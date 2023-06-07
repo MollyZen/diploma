@@ -16,6 +16,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.config.StompPrincipal;
+import ru.saltykov.diploma.domain.CollabMessage;
 import ru.saltykov.diploma.editing.Transformer;
 import ru.saltykov.diploma.messages.*;
 import ru.saltykov.diploma.storage.DataStorage;
@@ -25,7 +26,6 @@ import java.util.*;
 
 @Controller
 public class TestController {
-
     private final SimpMessagingTemplate template;
     private final AccessPoint accessPoint;
     private final DataStorage dataStorage;
@@ -49,6 +49,7 @@ public class TestController {
                 ChatMessage chatMessage = (ChatMessage)payloadJson.getMessage();
                 chatMessage.setUser(principal.getName());
                 chatMessage = transformer.addMessage(chatMessage);
+                chatMessage.setUser(principal.getName());
                 for (StompPrincipal user : transformer.getUsers()){
                     template.convertAndSendToUser(user.getName(),
                             "/queue/session/" + docId,
@@ -56,7 +57,6 @@ public class TestController {
                             Collections.singletonMap("message-id", extractMessageId(message)));
                 }
             }
-            case  "CURSOR" : break;
             case  "CHANGES" : {
                 DocumentChange change;
                 try {
@@ -71,7 +71,8 @@ public class TestController {
                 }
                 String json = toJson(change, "CHANGES");
                 transformer.insertText();
-                System.out.println(accessPoint.getLastText().getSecond());
+                Pair<Integer, String> lastText= accessPoint.getLastText(transformer.getFileId());
+                System.out.println(lastText != null ? lastText.getSecond() : "NO TEXT");
                 for (StompPrincipal user : users) {
                     template.convertAndSendToUser(user.getName(),
                             "/queue/session/" + docId,
@@ -79,7 +80,9 @@ public class TestController {
                             Collections.singletonMap("message-id", extractMessageId(message)));
                 }
             }
-            case "STATUS" : break;
+            case "STATUS" : {
+
+            };
         }
     }
 
@@ -138,18 +141,24 @@ public class TestController {
                 }
             }
         }
-        long changesFrom = 0;
+        int changesFrom = 0;
         List<DocumentChange> changes = new ArrayList<>();
-        Pair<Long, String> lastText = accessPoint.getLastText();
-        if (accessPoint.getLastText() != null) {
+        Pair<Integer, String> lastText = accessPoint.getLastText(transformer.getFileId());
+        if (accessPoint.getLastText(transformer.getFileId()) != null) {
             changes.add(DocumentChange.builder().changes(lastText.getSecond()).revision(lastText.getFirst()).user("SYSTEM").build());
             changesFrom = lastText.getFirst();
         }
-        changes.addAll(accessPoint.getChangesFrom(changesFrom));
+        changes.addAll(accessPoint.getChangesFrom(transformer.getFileId(), changesFrom));
         for (DocumentChange change : changes)
             template.convertAndSendToUser(event.getUser().getName(),
                     "/queue/session/" + transformer.getFileId(),
                     toJson(change, "CHANGES"));
+        List<ChatMessage> messages = accessPoint.getMessagesFrom(transformer.getFileId(), 0);
+        for (ChatMessage message : messages){
+            template.convertAndSendToUser(event.getUser().getName(),
+                    "/queue/session/" + transformer.getFileId(),
+                    toJson(message, "CHAT"));
+        }
 
         userSessions.put(event.getMessage().getHeaders().get("simpSessionId", String.class), transformer);
         System.out.println("subscribed");

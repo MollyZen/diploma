@@ -32,8 +32,8 @@ public class Transformer {
     private final AccessPoint accessPoint;
     private final DataStorage dataStorage;
     @Getter
-    private final String fileId;
-    private Long revision = 0L;
+    private final UUID fileId;
+    private Integer revision = 0;
 
     private final Set<StompPrincipal> users = new HashSet<>();
     private final Map<String, String> anonymousUserNames = new HashMap<>();
@@ -42,7 +42,7 @@ public class Transformer {
     public Transformer(AccessPoint accessPoint, DataStorage dataStorage, String fileId) {
         this.accessPoint = accessPoint;
         this.dataStorage = dataStorage;
-        this.fileId = fileId;
+        this.fileId = UUID.fromString(fileId);
     }
 
     @SneakyThrows
@@ -50,7 +50,7 @@ public class Transformer {
         DocumentChange transformed = null;
         transformed = parse(changes);
         if (transformed != null) {
-            accessPoint.insertChanges(transformed);
+            accessPoint.insertChanges(fileId, transformed);
             ++revision;
         }
 
@@ -59,22 +59,22 @@ public class Transformer {
 
     synchronized public void insertText(){
         String text = combineChanges(revision);
-        accessPoint.addText(revision, text);
+        accessPoint.addText(fileId, revision, text);
         if (dataStorage != null)
             dataStorage.updateFile(fileId, text);
     }
 
-    private String combineChanges(Long revId){
+    private String combineChanges(Integer revId){
         StringBuilder builder = new StringBuilder();
         StringBuilder resText = new StringBuilder();
-        Pair<Long, String> lastText = accessPoint.getLastText();
+        Pair<Integer, String> lastText = accessPoint.getLastText(fileId);
         List<DocumentChange> changes = new ArrayList<>();
         if (lastText != null) {
             changes.add(DocumentChange.builder().changes(lastText.getSecond()).revision(lastText.getFirst()).build());
-            changes.addAll(accessPoint.getChangesFrom(lastText.getFirst()));
+            changes.addAll(accessPoint.getChangesFrom(fileId, lastText.getFirst()));
         }
         else{
-            changes.addAll(accessPoint.getChangesFrom(0L));
+            changes.addAll(accessPoint.getChangesFrom(fileId, 0));
         }
         List<ParsedChanges> parsedChanges = changes.stream().map(this::parseChanges).toList();
         TreeMap<String, String> formatting = new TreeMap<>();
@@ -137,7 +137,7 @@ public class Transformer {
         List<DocumentChange> prevChanges = new ArrayList<>();
         ParsedChanges transformed = parseChanges(changes);
         if (revision - changes.getRevision() > 0) {
-            prevChanges = accessPoint.getChangesFrom(changes.getRevision());
+            prevChanges = accessPoint.getChangesFrom(fileId, changes.getRevision());
             for (DocumentChange prevChange : prevChanges) {
                 transformed = transform(transformed, prevChange);
                 if (transformed.getTokens().size() == 0) break;
@@ -427,12 +427,12 @@ public class Transformer {
 
     public ChatMessage addMessage(ChatMessage message) {
         message.setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toEpochSecond());
-        message.setMessageId(accessPoint.getMessageHead());
-        accessPoint.addMessage(message);
+        message.setMessageid(accessPoint.getMessageHead(fileId));
+        accessPoint.addMessage(fileId, message);
         return message;
     }
 
-    public List<ChatMessage> getMessagesFrom(Long messageId) {
-        return accessPoint.getMessagesFrom(messageId);
+    public List<ChatMessage> getMessagesFrom(Integer messageId) {
+        return accessPoint.getMessagesFrom(fileId, messageId);
     }
 }

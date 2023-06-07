@@ -274,7 +274,7 @@ function createNewTextNode(el, text, style, isBefore, isChild){
     return tmp;
 }
 
-function addParagraph(el, text, style, isBefore){
+function addParagraph(el, text, style, isBefore, insert){
     const tmp = document.createElement('div');
     const span = document.createElement('span');
     if (text) span.appendChild(document.createTextNode(text));
@@ -283,7 +283,10 @@ function addParagraph(el, text, style, isBefore){
     span.appendChild(br);
     tmp.appendChild(span);
     //TODO: styling
-    if (isBefore)
+    if (insert){
+        pane.appendChild(tmp);
+    }
+    else if (isBefore)
         el.before(tmp);
     else
         el.after(tmp);

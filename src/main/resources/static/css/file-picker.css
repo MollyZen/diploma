@@ -1,0 +1,63 @@
+#files {
+    border-collapse: collapse;
+    width:80%;
+    margin: 30px auto auto;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+}
+
+#files tbody:first-child tr:first-child th {
+    background-color: var(--main-color);
+    border:none;
+    cursor: default;
+    z-index: 999;
+    position: relative;
+}
+
+#files tbody:first-child tr:first-child th:first-child{
+    border-top-left-radius: 5px;
+}
+
+#files tbody:first-child tr:first-child th:last-child{
+    border-top-right-radius: 5px;
+}
+
+#files tr th:nth-child(2) {
+    max-width: 40%;
+    word-wrap: break-word;
+}
+#files tr th:nth-child(2) {
+    max-width: min-content;
+}
+#files tr th:nth-child(3) {
+    max-width: min-content;
+}
+#files tr th:nth-child(4) {
+    max-width: min-content;
+}
+
+#files tbody:first-child th {
+    padding: 5px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+#files tr:not(:first-child) {
+    cursor: pointer;
+    background-color: floralwhite;
+}
+
+#files tr td {
+    padding: 15px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+#files tbody:last-child tr:last-child td:first-child{
+    border-bottom-left-radius: 5px;
+}
+
+#files tbody:last-child tr:last-child td:last-child{
+    border-bottom-right-radius: 5px;
+}
+

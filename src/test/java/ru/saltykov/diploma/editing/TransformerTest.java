@@ -20,7 +20,7 @@ class TransformerTest {
         transformer.insertText();
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+6#+6#BOBBAR", accessPoint.getLastText().getSecond());
+        assertEquals("0+6#+6#BOBBAR", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -34,7 +34,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+3#+3#FAR", accessPoint.getLastText().getSecond());
+        assertEquals("0+3#+3#FAR", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -48,7 +48,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+4#+4#FAAR", accessPoint.getLastText().getSecond());
+        assertEquals("0+4#+4#FAAR", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -64,7 +64,7 @@ class TransformerTest {
         transformer.applyChanges(ch2);
         transformer.applyChanges(ch3);
         transformer.insertText();
-        assertEquals("0+5#+5#FAABR", accessPoint.getLastText().getSecond());
+        assertEquals("0+5#+5#FAABR", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -78,7 +78,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+4#+4#BCAA", accessPoint.getLastText().getSecond());
+        assertEquals("0+4#+4#BCAA", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -92,7 +92,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+0##", accessPoint.getLastText().getSecond());
+        assertEquals("0+0##", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -106,7 +106,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+5#+5#ABBCD", accessPoint.getLastText().getSecond());
+        assertEquals("0+5#+5#ABBCD", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -120,7 +120,7 @@ class TransformerTest {
         transformer.applyChanges(ch2);
         transformer.applyChanges(ch1);
         transformer.insertText();
-        assertEquals("0+5#+5#AZZCD", accessPoint.getLastText().getSecond());
+        assertEquals("0+5#+5#AZZCD", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -134,7 +134,7 @@ class TransformerTest {
         transformer.applyChanges(ch2);
         transformer.applyChanges(ch1);
         transformer.insertText();
-        assertEquals("0+7#+7#AZZHHCD", accessPoint.getLastText().getSecond());
+        assertEquals("0+7#+7#AZZHHCD", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -148,7 +148,7 @@ class TransformerTest {
         transformer.applyChanges(ch2);
         transformer.applyChanges(ch1);
         transformer.insertText();
-        assertEquals("0+6#+6#ZZHHCD", accessPoint.getLastText().getSecond());
+        assertEquals("0+6#+6#ZZHHCD", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -162,7 +162,7 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+2#+2#AD", accessPoint.getLastText().getSecond());
+        assertEquals("0+2#+2#AD", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 
     @Test
@@ -176,6 +176,6 @@ class TransformerTest {
         transformer.applyChanges(ch1);
         transformer.applyChanges(ch2);
         transformer.insertText();
-        assertEquals("0+5#+5#ABEFD", accessPoint.getLastText().getSecond());
+        assertEquals("0+5#+5#ABEFD", accessPoint.getLastText(transformer.getFileId()).getSecond());
     }
 }

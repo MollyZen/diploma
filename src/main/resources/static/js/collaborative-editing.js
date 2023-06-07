@@ -291,7 +291,7 @@ function ChatMessage(text, user, timestamp, id) {
                 "user": curUser,
                 "message": this.text,
                 "timestamp": null,
-                "messageId":null
+                "messageid":null
             }
         }
         return JSON.stringify(obj);
@@ -336,14 +336,15 @@ function processMessage(message) {
 
             const rec = document.getElementById('chatreceived');
             let el;
-            const id = obj.message.messageId;
+            const id = obj.message.messageid;
             if (document.getElementById(messageId) && obj.message.user === curUser)
                 document.getElementById(messageId).remove();
 
             const header = document.createElement('div');
-            header.style.backgroundColor = HSLtoString(users.get(obj.message.user).colour);
+            const us = users.get(obj.message.user);
+            header.style.backgroundColor = HSLtoString(us ? us.colour : [104, 0, 41]);
             const name = document.createElement('span');
-            name.appendChild(document.createTextNode(users.get(obj.message.user).username + ':'));
+            name.appendChild(document.createTextNode((us ? us.username : 'Анонимный пользователь') + ':'));
             const icon = document.createElement('span');
             icon.style.float = 'right';
             icon.appendChild(document.createTextNode(formattedTime + ', ' + formattedDate));
@@ -725,10 +726,6 @@ function submitChatMessage(message){
     stompClient.send('/app/session/' + fileId,
         {'message-id': id},
         message.toMessageJSON());
-}
-
-function submitCursorUpdate(update){
-
 }
 
 ///misc

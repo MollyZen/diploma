@@ -34,7 +34,7 @@ function TreeNode(parent, left, right, text, style) {
     this.parent = parent;
     this.children = [left, right];
     this.text = text;
-    this.length = text ? text.length : null;
+    this.length = text ? text.length : 0;
     this.style = style;
     //functions
     this.getText = () => {
@@ -124,6 +124,12 @@ function ropeInsertText(text, style, pos) {
 
     let added = [];
     let removed = [];
+    if (ropeRoot.getLength() === 0){
+        newNode = new TreeNode(ropeRoot, null, null, text, style);
+        ropeRoot.setRight(newNode);
+        added.push(newNode);
+        return {added, removed}
+    }
     if (pos === 0 || pos === ropeRoot.length){
         if (ropeRoot.getLeft() || ropeRoot.getRight() || ropeRoot.getText()) {
             if (pos === 0){

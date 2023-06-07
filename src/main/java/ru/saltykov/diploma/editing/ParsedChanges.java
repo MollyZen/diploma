@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 @Data
 public class ParsedChanges {
     private String user;
-    private Long revision;
+    private Integer revision;
     private Integer start;
     private Integer length;
     private List<FormattedToken> tokens;

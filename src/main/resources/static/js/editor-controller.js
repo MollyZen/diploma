@@ -7,7 +7,7 @@ const actionHistory = [];
 
 function initController() {
     //init model
-    const modelEl = ropeInsertText('\n', null, 0).added[0];
+    /*const modelEl = ropeInsertText('\n', null, 0).added[0];
 
     //init view
     const initialBreak = document.createElement('br');
@@ -23,32 +23,7 @@ function initController() {
 
     //init relation between them
     modelViewRelMap.set(modelEl, initialSpan);
-    modelViewRelMap.set(initialSpan, [modelEl]);
-}
-
-function validateModelView() {
-    let modelString = getFullString(ropeRoot);
-    let viewString = '';
-
-    let page = firstPage;
-    let addNewLine = false;
-    while (page){
-        let nodes = Array.from(page.text.childNodes);
-        while (nodes.length > 0){
-            if (addNewLine)
-                viewString = viewString + '\n';
-            let node = nodes.shift();
-            if (node.tagName === 'BR')
-                viewString = viewString + '\v';
-            else
-                viewString = viewString + node.textContent;
-            addNewLine = true;
-        }
-
-        page = page.next;
-    }
-
-    return modelString === viewString;
+    modelViewRelMap.set(initialSpan, [modelEl]);*/
 }
 
 //inputHandling
@@ -226,7 +201,12 @@ function insertText(text, style, pos){
 
 function insertNewLine(pos){
     let {added, removed} = ropeInsertText('\n', null, pos);
-
+    if (modelViewRelMap.size === 0){
+        const tmp = addParagraph(null, null, null, null, true);
+        modelViewRelMap.set(tmp.firstChild, added);
+        modelViewRelMap.set(added[0], tmp.firstChild);
+        return;
+    }
     let newPar;
     if (removed.length > 0){
         let view = modelViewRelMap.get(removed[0]);

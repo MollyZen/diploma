@@ -3,6 +3,7 @@ package ru.saltykov.diploma.config;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -101,9 +102,14 @@ public class SecurityConfig{
             HttpSession session = request.getSession(false);
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (session != null && auth != null && !auth.getPrincipal().equals("anonymousUser")){
+            if (session != null && auth != null && !auth.getPrincipal().equals("anonymousUser") && auth instanceof CollabUser){
                 if (userService.getUserByUsername(((CollabUser)auth.getPrincipal()).getUsername()) == null){
                     session.invalidate();
+                    Cookie cookie = new Cookie("JSESSIONID", null);
+                    cookie.setPath("/");
+                    cookie.setHttpOnly(true);
+                    cookie.setMaxAge(0);
+                    response.addCookie(cookie);
                 }
             }
             filterChain.doFilter(request, response);

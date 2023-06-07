@@ -1,6 +1,10 @@
 package ru.saltykov.diploma.storage;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import ru.saltykov.diploma.config.StaticResourceConfiguration;
+import ru.saltykov.diploma.domain.FileDescription;
+import ru.saltykov.diploma.repositories.FileDescriptionRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+@Component
 public class LocalStorage implements DataStorage{
+    @Autowired
+    FileDescriptionRepository fileDescriptionRepository;
 
     public static String path = StaticResourceConfiguration.homeDir + File.separator + "files";
 
@@ -34,17 +41,19 @@ public class LocalStorage implements DataStorage{
     }
 
     @Override
-    public FileDescription createFile() throws IOException {
-        UUID uuid = UUID.randomUUID();
-        File file = new File(path + File.separator + uuid + ".collab");
+    public FileDescription createFile(UUID owner) throws IOException {
+        FileDescription description = new FileDescription();
+        description.owner(owner);
+        description.name("Новый Файл");
+        fileDescriptionRepository.createFile(description);
+        description = fileDescriptionRepository.getFile(description.id());
+        File file = new File(path + File.separator + description.id() + ".collab");
         file.createNewFile();
-        files.put(uuid, file);
-        LocalDateTime now = LocalDateTime.now();
-        return new FileDescription().created(now).lastModified(now).id(uuid).name(uuid.toString() + ".collab");
+        return description;
     }
 
     @Override
-    public void updateFile(String fileId, String data) {
+    public void updateFile(UUID fileId, String data) {
 
     }
 
@@ -54,7 +63,7 @@ public class LocalStorage implements DataStorage{
     }
 
     @Override
-    public List<FileDescription> getFiles(String user) {
+    public List<FileDescription> getFiles(UUID owner) {
         return null;
     }
 
