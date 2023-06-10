@@ -63,7 +63,7 @@ public class SecurityConfig{
                 .formLogin(Customizer.withDefaults())
                 .logout(LogoutConfigurer::permitAll)
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/h2-console").permitAll()
+                        .requestMatchers("/h2-console**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/registration").permitAll()

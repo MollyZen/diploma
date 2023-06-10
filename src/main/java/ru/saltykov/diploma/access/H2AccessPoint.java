@@ -2,7 +2,6 @@ package ru.saltykov.diploma.access;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import ru.saltykov.diploma.domain.CollabChanges;
 import ru.saltykov.diploma.domain.CollabMessage;
@@ -12,7 +11,6 @@ import ru.saltykov.diploma.messages.StatusUpdate;
 import ru.saltykov.diploma.repositories.ChangesRepository;
 import ru.saltykov.diploma.repositories.MessageRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -67,6 +65,11 @@ public class H2AccessPoint implements AccessPoint{
     }
 
     @Override
+    public Integer getRevision(UUID file) {
+        return Stream.of(changesRepository.getFileRevision(file)).filter(Objects::nonNull).findFirst().orElse(0);
+    }
+
+    @Override
     public ChatMessage addMessage(UUID fileId, ChatMessage message) {
         CollabMessage collabMessage = new CollabMessage(null, fileId, message.getUser() != null ? UUID.fromString(message.getUser()) : null, null, message.getMessageid(), message.getMessage());
         messageRepository.addMessage(collabMessage);
@@ -94,7 +97,7 @@ public class H2AccessPoint implements AccessPoint{
 
     @Override
     public Integer getMessageHead(UUID fileId) {
-        return Stream.of(messageRepository.getMessageHead(fileId)).filter(Objects::nonNull).findFirst().orElse(0);
+        return Stream.of(messageRepository.getMessageHead(fileId)).filter(Objects::nonNull).findFirst().orElse(null);
     }
 
     @Override

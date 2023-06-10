@@ -4,7 +4,6 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Update;
 import org.springframework.stereotype.Repository;
-import ru.saltykov.diploma.domain.CollabChanges;
 import ru.saltykov.diploma.domain.CollabStatus;
 
 @Repository

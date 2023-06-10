@@ -14,7 +14,9 @@ import ru.saltykov.diploma.domain.FileDescription;
 import ru.saltykov.diploma.repositories.FileDescriptionRepository;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rest")

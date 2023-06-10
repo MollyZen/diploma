@@ -5,8 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.io.File;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data

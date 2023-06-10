@@ -43,6 +43,7 @@ public class Transformer {
         this.accessPoint = accessPoint;
         this.dataStorage = dataStorage;
         this.fileId = UUID.fromString(fileId);
+        this.revision = this.accessPoint.getRevision(this.fileId);
     }
 
     @SneakyThrows
@@ -98,8 +99,9 @@ public class Transformer {
                         rope.ropeDeleteText(pos, token.getValue());
                     }
                     case AllowedTokens.CHAR_KEPT -> {
+                        String style = formatting.entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(" "));
                         pos += token.getValue();
-                        //TODO: здесь и во фронте сделать
+                        rope.applyFormatting(pos, token.getValue(), style);
                     }
                     case AllowedTokens.APPLY_FORMATTING -> {
                         formatting.put(token.getValue().toString(), token.getSubValue());

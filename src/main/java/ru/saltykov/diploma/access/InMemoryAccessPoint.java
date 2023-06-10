@@ -47,6 +47,11 @@ public class InMemoryAccessPoint implements AccessPoint{
     }
 
     @Override
+    public Integer getRevision(UUID file) {
+        return changesMap.get(file).size();
+    }
+
+    @Override
     public ChatMessage addMessage(UUID fileid, ChatMessage message) {
         chatMap.computeIfAbsent(fileid, e -> new TreeMap<>());
         chatMap.get(fileid).put((long)chatMap.get(fileid).size(), message);

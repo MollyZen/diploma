@@ -16,6 +16,7 @@ public interface AccessPoint {
     void addText(UUID fileid, Integer revId, String text);
     Pair<Integer, String> getLastText(UUID fileid);
     String getText(UUID fileid, Integer revId);
+    Integer getRevision(UUID file);
 
     //chat
     ChatMessage addMessage(UUID fileid, ChatMessage message);
