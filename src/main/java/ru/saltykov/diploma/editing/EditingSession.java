@@ -10,6 +10,7 @@ import ru.saltykov.diploma.config.StompPrincipal;
 import ru.saltykov.diploma.domain.CollabUser;
 import ru.saltykov.diploma.messages.ChatMessage;
 import ru.saltykov.diploma.messages.DocumentChange;
+import ru.saltykov.diploma.messages.StatusUpdate;
 import ru.saltykov.diploma.storage.DataStorage;
 
 import java.time.LocalDateTime;
@@ -20,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Transformer {
+public class EditingSession {
     private final LinkedHashSet<String> randomNames = new LinkedHashSet<>(){{
         add("Анонимный гений");
         add("Анонимный аноним");
@@ -39,7 +40,7 @@ public class Transformer {
     private final Map<String, String> anonymousUserNames = new HashMap<>();
     private final Map<StompPrincipal, Integer> instancesCount = new HashMap<>();
 
-    public Transformer(AccessPoint accessPoint, DataStorage dataStorage, String fileId) {
+    public EditingSession(AccessPoint accessPoint, DataStorage dataStorage, String fileId) {
         this.accessPoint = accessPoint;
         this.dataStorage = dataStorage;
         this.fileId = UUID.fromString(fileId);
@@ -436,5 +437,15 @@ public class Transformer {
 
     public List<ChatMessage> getMessagesFrom(Integer messageId) {
         return accessPoint.getMessagesFrom(fileId, messageId);
+    }
+
+    public StatusUpdate setStatus(StompPrincipal principal, StatusUpdate statusUpdate){
+        if (anonymousUserNames.get(principal.getName()) != null){
+            return null;
+        }
+        else {
+            accessPoint.setStatus(fileId, UUID.fromString(principal.getCorePrincipal().getName()), statusUpdate.getStatus(), statusUpdate.getValue());
+            return statusUpdate;
+        }
     }
 }

@@ -6,8 +6,6 @@ const chatQueue = [];
 
 const users = new Map();
 const colours = new Map();
-//TODO: убрать хардкод
-colours.set('MollyZen', HSLtoString(generateHSL('MollyZen')));
 
 const pending = new Map();
 
@@ -409,7 +407,6 @@ function processChanges(messageId, obj) {
         pending.set(obj.message.revision, {messageId, obj});
         return;
     }
-    //TODO: сделать учет сдвигов для своих изменений при получении изменений со стороны
     const firstInQueue = changesQueue[0];
     if (firstInQueue && messageId === firstInQueue.messageId){
         if (firstInQueue.changes.getChanges() === obj.message.changes) {

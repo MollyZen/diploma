@@ -70,7 +70,7 @@ public class SecurityConfig{
                         /*.requestMatchers("/gs-guide-websocket/**").authenticated()
                         .requestMatchers("/user/**").authenticated()
                         .requestMatchers("/session/**").access()*/
-                        .requestMatchers("/").authenticated()
+                        .requestMatchers("/").permitAll()
                         .requestMatchers("/**").permitAll()
                         .requestMatchers("/logout").authenticated()
                         .anyRequest().authenticated()

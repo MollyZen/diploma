@@ -36,8 +36,14 @@
                 <div style="display: flex; flex-direction: column;">
                     <input value="НАЗВАНИЕ ФАЙЛА" type="text" spellcheck="false" autocomplete="off">
                     <div id="top-menu">
-                        <div class="menuitem" role="menuitem">Файл</div>
-                        <div class="menuitem" role="menuitem">Помощь</div>
+                        <div style="display: inline-block;padding: 0; margin: 0; margin-left: 5px;z-index:4">
+                            <div id="file-menu" class="menuitem" role="menuitem" style="cursor: pointer; margin-left: 0">Файл</div>
+                            <ul hidden="hidden" style="position: absolute;display: block;list-style: none;margin: 0;padding: 0;box-sizing border-box;background: #fff;border-radius: 5px;border: none;">
+                                <li style="padding: 10px 10px;cursor: pointer;position: relative;z-index: 4;background-color: white;white-space: nowrap;border: none;">Скачать текст</li>
+                                <li style="padding: 10px 10px;cursor: pointer;position: relative;z-index: 4;background-color: white;white-space: nowrap;border: none;">Скачать историю изменений</li>
+                            </ul>
+                        </div>
+                        <div id="help-menu" class="menuitem" role="menuitem" style="cursor: pointer">Помощь</div>
                     </div>
                 </div>
             </div>

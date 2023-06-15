@@ -6,24 +6,6 @@ const ROPE_NODE_SIZE_LIMIT = 4;
 const actionHistory = [];
 
 function initController() {
-    //init model
-    /*const modelEl = ropeInsertText('\n', null, 0).added[0];
-
-    //init view
-    const initialBreak = document.createElement('br');
-    initialBreak.setAttribute('class', 'newline');
-
-    const initialSpan = document.createElement('span');
-    initialSpan.appendChild(initialBreak);
-
-    const initialParagraph = document.createElement('div');
-    initialParagraph.appendChild(initialSpan);
-
-    pane.appendChild(initialParagraph);
-
-    //init relation between them
-    modelViewRelMap.set(modelEl, initialSpan);
-    modelViewRelMap.set(initialSpan, [modelEl]);*/
 }
 
 //inputHandling
@@ -38,7 +20,6 @@ function handleTextInput(text, style, pos){
         else if (val.length > 0)
             insertText(text, style, pos);
     })
-    //document.getElementById("sym_count").textContent = getLetterCount();
 }
 function insertText(text, style, pos){
     let {added, removed} = ropeInsertText(text, style, pos);
@@ -195,7 +176,6 @@ function insertText(text, style, pos){
                 modelViewRelMap.set(newView, [added[0]]);
             }
         }
-
     }
 }
 
@@ -531,7 +511,16 @@ function deleteText(pos, length){
 }
 
 function changeFormatting(pos, length, style){
-
+    const deleted = deleteText(pos, length);
+    const styleArr = styleStringToArr(style);
+    let poss = pos;
+    deleted.forEach(val => {
+        const map = new Map();
+        const tmp = styleStringToArr(val.style).map(e => map.set(e.code, e.value));
+        styleArr.forEach(e => map.set(e.code, e.value));
+        insertText(val.text, new Map([...map].sort()).map(([key, value]) => key + ':' + value).join(' '), poss);
+        poss += val.text.length;
+    })
 }
 
 function applyFormattingToElement(el, styleCode, value){

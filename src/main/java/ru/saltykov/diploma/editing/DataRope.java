@@ -292,6 +292,10 @@ public class DataRope {
         node.setText(split.getFirst() + remaining.getSecond());
     }
 
+    public void applyFormatting(int pos, int length, String style) {
+
+    }
+
     public TreeNode concat(TreeNode left, TreeNode right) {
         TreeNode node = new TreeNode();
         node.setLeft(left);

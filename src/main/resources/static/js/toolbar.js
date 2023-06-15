@@ -369,6 +369,8 @@ function toolbarSetup() {
         chatInput.focus();
     })
 
+
+
     initPages();
 }
 

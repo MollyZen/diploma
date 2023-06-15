@@ -307,6 +307,17 @@ function deletePartFromTextNode(node, pos, length){
     node.setText(split[0] + remaining[1]);
 }
 
+function formatText(pos, length, style){
+    const deleted = ropeDeleteText(pos, length);
+    const styleArr = styleStringToArr(style);
+    deleted.forEach(val => {
+        const map = new Map();
+        const tmp = styleStringToArr(val.style).map(e => map.set(e.code, e.value));
+        styleArr.forEach(e => map.set(e.code, e.value));
+        ropeInsertText(val.text, new Map([...map].sort()).map(([key, value]) => key + ':' + value).join(' '));
+    })
+}
+
 function concat(left, right) {
     let node = new TreeNode();
     node.setLeft(left);

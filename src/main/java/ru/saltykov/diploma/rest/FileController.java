@@ -6,10 +6,13 @@ import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.domain.FileDescription;
 import ru.saltykov.diploma.storage.DataStorage;
 
+import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/file")
+@RequestMapping("")
 public class FileController {
 
     @Autowired
@@ -18,27 +21,22 @@ public class FileController {
     @Autowired
     DataStorage dataStorage;
 
-    @PostMapping
+    @PostMapping("/file")
     public FileDescription createFile(UUID owner) throws Exception{
         return dataStorage.createFile(owner);
     }
 
-    @GetMapping
-    public void getFile(){
+    @GetMapping("/file/{id}")
+    public void getFile(Principal principal, @PathVariable String id){
 
     }
 
-    @PutMapping
-    public void modifyFile(){
-
+    @GetMapping("/files")
+    public List<FileDescription> getFiles(Principal principal){
+        return Collections.emptyList();
     }
 
-    @PatchMapping
-    public void patchFile(){
-
-    }
-
-    @DeleteMapping
+    @DeleteMapping("/file/{id}")
     public void deleteFile(){
 
     }

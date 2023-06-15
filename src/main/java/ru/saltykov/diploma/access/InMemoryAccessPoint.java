@@ -48,7 +48,8 @@ public class InMemoryAccessPoint implements AccessPoint{
 
     @Override
     public Integer getRevision(UUID file) {
-        return changesMap.get(file).size();
+        HashMap<Integer, DocumentChange> map = changesMap.get(file);
+        return map != null ? map.size() : 0;
     }
 
     @Override

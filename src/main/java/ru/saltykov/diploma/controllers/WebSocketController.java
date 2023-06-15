@@ -16,8 +16,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import ru.saltykov.diploma.access.AccessPoint;
 import ru.saltykov.diploma.config.StompPrincipal;
-import ru.saltykov.diploma.domain.CollabMessage;
-import ru.saltykov.diploma.editing.Transformer;
+import ru.saltykov.diploma.editing.EditingSession;
 import ru.saltykov.diploma.messages.*;
 import ru.saltykov.diploma.storage.DataStorage;
 
@@ -25,15 +24,15 @@ import java.security.Principal;
 import java.util.*;
 
 @Controller
-public class TestController {
+public class WebSocketController {
     private final SimpMessagingTemplate template;
     private final AccessPoint accessPoint;
     private final DataStorage dataStorage;
 
-    private final Map<String, Transformer> transformers = new TreeMap<>();
-    private final Map<String, Transformer> userSessions = new TreeMap<>();
+    private final Map<String, EditingSession> transformers = new TreeMap<>();
+    private final Map<String, EditingSession> userSessions = new TreeMap<>();
     @Autowired
-    public TestController(SimpMessagingTemplate template, AccessPoint accessPoint, DataStorage dataStorage) {
+    public WebSocketController(SimpMessagingTemplate template, AccessPoint accessPoint, DataStorage dataStorage) {
         this.template = template;
         this.accessPoint = accessPoint;
         this.dataStorage = dataStorage;
@@ -42,7 +41,7 @@ public class TestController {
     @MessageMapping("/session/{docId}")
     public void editingSession(Message<?> message, StompPrincipal principal, @DestinationVariable("docId") String docId, @Payload CollaborationMessageWrapper payloadJson) throws Exception {
         String type = payloadJson.getType();
-        Transformer transformer = transformers.get(docId);
+        EditingSession transformer = transformers.get(docId);
         Set<StompPrincipal> users = transformer.getUsers();
         switch (type){
             case  "CHAT" : {
@@ -66,13 +65,10 @@ public class TestController {
                             "/queue/session/" + docId,
                             "DENIED",
                             Collections.singletonMap("message-id", extractMessageId(message)));
-                    System.out.println("MESSAGE " + message.toString() + " DENIED");
                     return;
                 }
                 String json = toJson(change, "CHANGES");
                 transformer.insertText();
-                Pair<Integer, String> lastText= accessPoint.getLastText(transformer.getFileId());
-                System.out.println(lastText != null ? lastText.getSecond() : "NO TEXT");
                 for (StompPrincipal user : users) {
                     template.convertAndSendToUser(user.getName(),
                             "/queue/session/" + docId,
@@ -86,7 +82,7 @@ public class TestController {
         }
     }
 
-    private DocumentChange processChanges(Transformer transformer, Principal principal, CollaborationMessageWrapper payloadJson){
+    private DocumentChange processChanges(EditingSession transformer, Principal principal, CollaborationMessageWrapper payloadJson){
         DocumentChange payload = ((DocumentChange)payloadJson.getMessage());
         DocumentChange change = new DocumentChange();
         change.setUser(principal.getName());
@@ -120,9 +116,9 @@ public class TestController {
         String destination = ((List<?>)event.getMessage().getHeaders().get("nativeHeaders", Map.class).get("destination")).get(0).toString();
         String[] split = destination.split("/");
         String fileId = split[split.length - 1];
-        Transformer transformer = transformers.get(fileId);
+        EditingSession transformer = transformers.get(fileId);
         if (transformer == null) {
-            transformer = new Transformer(accessPoint, dataStorage, fileId);
+            transformer = new EditingSession(accessPoint, dataStorage, fileId);
             transformers.put(fileId, transformer);
         }
         if (!transformer.getUsers().contains((StompPrincipal)event.getUser())) {
@@ -161,12 +157,11 @@ public class TestController {
         }
 
         userSessions.put(event.getMessage().getHeaders().get("simpSessionId", String.class), transformer);
-        System.out.println("subscribed");
     }
 
     @EventListener
     public void onApplicationEvent(SessionDisconnectEvent event) throws JsonProcessingException {
-        Transformer sessionTransformer = userSessions.get(event.getMessage().getHeaders().get("simpSessionId", String.class));
+        EditingSession sessionTransformer = userSessions.get(event.getMessage().getHeaders().get("simpSessionId", String.class));
         sessionTransformer.removeUser((StompPrincipal) event.getUser());
         if (!sessionTransformer.getUsers().contains((StompPrincipal)event.getUser()))
             for (StompPrincipal user : sessionTransformer.getUsers())
